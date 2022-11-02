@@ -10,6 +10,13 @@ type GameState = (Player,Board)
 prettyShow :: GameState -> String
 
 checkWinner :: GameState -> Maybe Player
+checkWinner gs@(player, board) = 
+  let
+  in 
+  where checkNoMoves :: Boolean
+        checkNoMoves = null $ getValidMoves gs
+        checkNoPieces :: Boolean
+        checkNoPieces = 
 
 makeMove :: GameState -> Move -> Maybe GameState
 
