@@ -1,19 +1,17 @@
-data Player = Red | Black | None deriving (Eq,Show)
+data Player = Red | Black deriving (Eq,Show)
 data Kind = Emperor | Peasent deriving (Eq,Show)
 
 type Piece = (Player,Kind)
-type Board = [[Piece]]
+type Board = [[Maybe Piece]]
 type Coordinate = (Integer,Integer)
 type Move = [(Coordinate,Coordinate)]
 type GameState = (Player,Board)
-
-instance Show Board where
-  show board = undefined
   
+prettyShow :: GameState -> String
 
-checkWinner :: GameState -> Player
+checkWinner :: GameState -> Maybe Player
 
-makeMove :: GameState -> Move -> GameState
+makeMove :: GameState -> Move -> Maybe GameState
 
 makeLegalMove :: GameState -> Move -> GameState
 
