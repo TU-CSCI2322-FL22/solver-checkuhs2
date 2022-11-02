@@ -19,4 +19,14 @@ isValidMove :: GameState -> Move -> Boolean
 
 getValidMoves :: GameState -> [Move]
 
-let defaultBoard = undefined
+let defaultBoard = 
+  [
+    [Nothing,(Black,Peasent),Nothing,(Black,Peasent),Nothing,(Black,Peasent),Nothing,(Black,Peasent)]
+    [(Black,Peasent),Nothing,(Black,Peasent),Nothing,(Black,Peasent),Nothing,(Black,Peasent),Nothing]
+    [Nothing,(Black,Peasent),Nothing,(Black,Peasent),Nothing,(Black,Peasent),Nothing,(Black,Peasent)]
+    [Nothing,Nothing,Nothing,Nothing,Nothing,Nothing,Nothing,Nothing]
+    [Nothing,Nothing,Nothing,Nothing,Nothing,Nothing,Nothing,Nothing]
+    [(Red,Peasent),Nothing,(Red,Peasent),Nothing,(Red,Peasent),Nothing,(Red,Peasent),Nothing]
+    [Nothing,(Red,Peasent),Nothing,(Red,Peasent),Nothing,(Red,Peasent),Nothing,(Red,Peasent)]
+    [(Red,Peasent),Nothing,(Red,Peasent),Nothing,(Red,Peasent),Nothing,(Red,Peasent),Nothing]
+  ]
