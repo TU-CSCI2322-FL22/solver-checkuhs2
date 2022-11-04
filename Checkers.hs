@@ -38,12 +38,23 @@ f 'b' = Just(Black,Peasent)
 
 defaultBoard = 
   [
-    map f "nbnbnbnb",
-    map f "bnbnbnbn",
-    map f "nbnbnbnb",
-    map f "nnnnnnnn",
-    map f "nnnnnnnn",
-    map f "rnrnrnrn",
-    map f "nrnrnrnr",
-    map f "rnrnrnrn"
+    map f "bbbb",
+    map f "bbbb",
+    map f "bbbb",
+    map f "nnnn",
+    map f "nnnn",
+    map f "rrrr",
+    map f "rrrr",
+    map f "rrrr"
   ]
+
+{-
+|||||(0,7)|||||(1,7)|||||(2,7)|||||(3,7)
+(0,6)|||||(1,6)|||||(2,6)|||||(3,6)|||||
+|||||(0,5)|||||(1,5)|||||(2,5)|||||(3,5)
+(0,4)|||||(1,4)|||||(2,4)|||||(3,4)|||||
+|||||(0,3)|||||(1,3)|||||(2,3)|||||(3,3)
+(0,2)|||||(1,2)|||||(2,2)|||||(3,2)|||||
+|||||(0,1)|||||(1,1)|||||(2,1)|||||(3,1)
+(0,0)|||||(1,0)|||||(2,0)|||||(3,0)|||||
+-}
