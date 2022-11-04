@@ -8,25 +8,42 @@ type Move = [(Coordinate,Coordinate)]
 type GameState = (Player,Board)
   
 prettyShow :: GameState -> String
+prettyShow = undefined
 
-checkWinner :: GameState -> Maybe Player
+
+--checkWinner happens at the start of a "turn"
+--takes the current gamestate and the moves the current player can make
+--this means that if no moves can be made the 'other' player wins 
+checkWinner :: GameState -> [Move] -> Maybe Player
+checkWinner (Red,board) [] = Just Black
+checkWinner (Black,board) [] = Just Red
+checkWinner gs moves = Nothing
 
 makeMove :: GameState -> Move -> Maybe GameState
+makeMove = undefined
 
 makeLegalMove :: GameState -> Move -> GameState
+makeLegalMove = undefined
 
-isValidMove :: GameState -> Move -> Boolean
+isValidMove :: GameState -> Move -> Bool
+isValidMove = undefined
 
 getValidMoves :: GameState -> [Move]
+getValidMoves = undefined
 
-let defaultBoard = 
+f :: Char -> Maybe Piece 
+f 'n' = Nothing
+f 'r' = Just(Red,Peasent)
+f 'b' = Just(Black,Peasent)
+
+defaultBoard = 
   [
-    [Nothing,(Black,Peasent),Nothing,(Black,Peasent),Nothing,(Black,Peasent),Nothing,(Black,Peasent)]
-    [(Black,Peasent),Nothing,(Black,Peasent),Nothing,(Black,Peasent),Nothing,(Black,Peasent),Nothing]
-    [Nothing,(Black,Peasent),Nothing,(Black,Peasent),Nothing,(Black,Peasent),Nothing,(Black,Peasent)]
-    [Nothing,Nothing,Nothing,Nothing,Nothing,Nothing,Nothing,Nothing]
-    [Nothing,Nothing,Nothing,Nothing,Nothing,Nothing,Nothing,Nothing]
-    [(Red,Peasent),Nothing,(Red,Peasent),Nothing,(Red,Peasent),Nothing,(Red,Peasent),Nothing]
-    [Nothing,(Red,Peasent),Nothing,(Red,Peasent),Nothing,(Red,Peasent),Nothing,(Red,Peasent)]
-    [(Red,Peasent),Nothing,(Red,Peasent),Nothing,(Red,Peasent),Nothing,(Red,Peasent),Nothing]
+    map f "nbnbnbnb",
+    map f "bnbnbnbn",
+    map f "nbnbnbnb",
+    map f "nnnnnnnn",
+    map f "nnnnnnnn",
+    map f "rnrnrnrn",
+    map f "nrnrnrnr",
+    map f "rnrnrnrn"
   ]
