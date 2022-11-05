@@ -1,3 +1,6 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use guards" #-}
+{-# HLINT ignore "Use !!" #-}
 import Data.List
 
 data Player = Red | Black deriving (Eq,Show)
@@ -5,13 +8,13 @@ data Kind = Emperor | Peasent deriving (Eq,Show)
 
 type Piece = (Player,Kind)
 type Board = [[Maybe Piece]]
-type Coordinate = (Integer,Integer)
+type Coordinate = (Int,Int)
 type Move = [(Coordinate,Coordinate)]
 type GameState = (Player,Board)
 
 --Helper function for prettySHow that will turn a row of pieces into a string
 writeRow :: [Maybe Piece] -> String
-writeRow ((Just piece):xs) = 
+writeRow ((Just piece):xs) =
   let symbol = case piece of
                  (Red,Peasent) -> "r"
                  (Red,Emperor) -> "R"
@@ -37,11 +40,42 @@ checkWinner (Black,board) [] = Just Red
 checkWinner gs moves = Nothing
 
 
-makeMove :: GameState -> Move -> Maybe GameState
-makeMove = undefined
+makeMove :: GameState -> Move -> [Move] -> Maybe GameState
+makeMove gs move [] = Nothing
+makeMove gs move possibleMoves =
+  if move `elem` possibleMoves then Just $ makeLegalMove gs move else Nothing
 
 makeLegalMove :: GameState -> Move -> GameState
-makeLegalMove = undefined
+makeLegalMove gs@(player,board) [] = gs
+makeLegalMove gs@(player,board) ((s,e):ms) =
+  if abs (getRow s - getRow e) == 2 
+  then makeLegalMove (player, makeJumpMove board (s,e)) ms
+  else makeLegalMove (player, makeMoveMove board (s,e)) ms
+  where makeJumpMove :: Board -> (Coordinate,Coordinate) -> Board
+        makeJumpMove bd (s,e) = 
+          let jumpedCoords = if even $ getRow s --if its on an even row
+                             then if getCol e > getCol s {-jumped right on even row-} 
+                             then (getCol s, (getRow s + getRow e)`div`2) else (getCol e,(getRow s + getRow e)`div`2)
+                             else if getCol e > getCol s {-jumped right on odd row-} 
+                             then (getCol e, (getRow s + getRow e)`div`2) else (getCol s,(getRow s + getRow e)`div`2)
+              piece = head $ drop (getCol s) (head $ drop (7 - getRow s) bd)
+          in updateBoard (updateBoard (updateBoard bd Nothing s) Nothing jumpedCoords) piece e
+        makeMoveMove :: Board -> (Coordinate,Coordinate) -> Board
+        makeMoveMove bd (s,e) = 
+          let piece = head $ drop (getCol s) (head $ drop (7 - getRow s) bd)
+          in updateBoard (updateBoard bd Nothing s) piece e
+        updateBoard :: Board -> Maybe Piece -> Coordinate -> Board
+        updateBoard bd piece (col,row) = 
+          let (rowsBefore,changedRow:rowsAfter) = splitAt (7-row) bd
+              (spacesBefore,_:spacesAfter) = splitAt col changedRow
+              newRow = spacesBefore ++ piece : spacesAfter
+          in rowsBefore ++ newRow : rowsAfter
+
+
+getCol :: Coordinate -> Int
+getCol = fst
+getRow :: Coordinate -> Int
+getRow = snd
 
 isValidMove :: GameState -> Move -> Bool
 isValidMove = undefined
@@ -49,12 +83,12 @@ isValidMove = undefined
 getValidMoves :: GameState -> [Move]
 getValidMoves = undefined
 
-f :: Char -> Maybe Piece 
+f :: Char -> Maybe Piece
 f 'n' = Nothing
 f 'r' = Just(Red,Peasent)
 f 'b' = Just(Black,Peasent)
 
-defaultBoard = 
+defaultBoard =
   [
     map f "bbbb",
     map f "bbbb",
