@@ -20,7 +20,7 @@ writeRow num ((Just piece):xs) =
                  (Red,Emperor) -> "R"
                  (Black,Peasent) -> "b"
                  (Black,Emperor) -> "B"
-  in if num `mod` 2 == 1
+  in if num `mod` 2 == 0
     then "   | " ++ symbol ++ " |" ++ (writeRow num xs)
   else
     " " ++ symbol ++ " |   |" ++ (writeRow num xs) 
