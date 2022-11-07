@@ -29,7 +29,7 @@ writeRow num [] = []
 --NOTE - when testing in ghci, new lines characters will not appear unless you pass the string from prettyShow into putStrLn
 --For example, if you want to test the default board in ghci, you should write: putStrLn $ prettyShow defaultBoard
 prettyShow :: GameState -> String
-prettyShow (player,board) = intercalate "\n" $ reverse $ ["\n", (show player) ++ "'s Turn", "\n", "  ---------------------------------"] ++ (aux 1 board) ++ ["\n"]
+prettyShow (player,board) = intercalate "\n" $ reverse $ ["\n", (show player) ++ "'s Turn", "\n", "  ---------------------------------"] ++ (aux 1 (reverse board)) ++ ["\n"]
   where size = length board
         aux num (row:rowTail) = [(show num) ++ " |" ++ (writeRow num row), "  ---------------------------------"] ++ aux (num + 1) rowTail
         aux num [] = ["    1   2   3   4   5   6   7   8 "]
