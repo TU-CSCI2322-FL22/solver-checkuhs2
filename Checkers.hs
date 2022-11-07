@@ -14,7 +14,7 @@ type GameState = (Player,Board)
 
 --writeShow is a helper function for prettyShow that will turn a row of pieces into a string
 writeRow :: Integer -> [Maybe Piece] -> String
-writeRow num ((Just piece):xs) = 
+writeRow num ((Just piece):xs) =
   let symbol = case piece of
                  (Red,Peasent) -> "r"
                  (Red,Emperor) -> "R"
@@ -23,7 +23,7 @@ writeRow num ((Just piece):xs) =
   in if num `mod` 2 == 0
     then "   | " ++ symbol ++ " |" ++ (writeRow num xs)
   else
-    " " ++ symbol ++ " |   |" ++ (writeRow num xs) 
+    " " ++ symbol ++ " |   |" ++ (writeRow num xs)
 
 writeRow num ((Nothing):xs) = "   |   |" ++ (writeRow num xs)
 writeRow num [] = []
@@ -55,34 +55,52 @@ makeMove gs move possibleMoves =
 makeLegalMove :: GameState -> Move -> GameState
 makeLegalMove gs@(player,board) [] = gs
 makeLegalMove gs@(player,board) ((s,e):ms) =
-  if abs (getRow s - getRow e) == 2 
+  if abs (getRow s - getRow e) == 2
   then makeLegalMove (player, makeJumpMove board (s,e)) ms
   else makeLegalMove (player, makeMoveMove board (s,e)) ms
   where makeJumpMove :: Board -> (Coordinate,Coordinate) -> Board
-        makeJumpMove bd (s,e) = 
+        makeJumpMove bd (s,e) =
           let jumpedCoords = if even $ getRow s --if its on an even row
-                             then if getCol e > getCol s {-jumped right on even row-} 
+                             then if getCol e > getCol s {-jumped right on even row-}
                              then (getCol s, (getRow s + getRow e)`div`2) else (getCol e,(getRow s + getRow e)`div`2)
-                             else if getCol e > getCol s {-jumped right on odd row-} 
+                             else if getCol e > getCol s {-jumped right on odd row-}
                              then (getCol e, (getRow s + getRow e)`div`2) else (getCol s,(getRow s + getRow e)`div`2)
               piece = head $ drop (getCol s) (head $ drop (7 - getRow s) bd)
           in updateBoard (updateBoard (updateBoard bd Nothing s) Nothing jumpedCoords) piece e
         makeMoveMove :: Board -> (Coordinate,Coordinate) -> Board
-        makeMoveMove bd (s,e) = 
+        makeMoveMove bd (s,e) =
           let piece = head $ drop (getCol s) (head $ drop (7 - getRow s) bd)
           in updateBoard (updateBoard bd Nothing s) piece e
         updateBoard :: Board -> Maybe Piece -> Coordinate -> Board
-        updateBoard bd piece (col,row) = 
+        updateBoard bd piece (col,row) =
           let (rowsBefore,changedRow:rowsAfter) = splitAt (7-row) bd
               (spacesBefore,_:spacesAfter) = splitAt col changedRow
               newRow = spacesBefore ++ piece : spacesAfter
           in rowsBefore ++ newRow : rowsAfter
+        getCol :: Coordinate -> Int
+        getCol = fst
+        getRow :: Coordinate -> Int
+        getRow = snd
 
+--in the game, x range 0-3 and y range 0-7
+--typing move, x range 1-8 and y range 1-8
+--when playing the actual game, the coordinates the player puts in 
+--will be put through this function to tranform them into "game coordinates"
+--every function should use these "game coordintes"
+--only the visual component will use the board coordinates
+boardCoordsToGameCoords :: (Coordinate,Coordinate) -> (Coordinate,Coordinate)
+boardCoordsToGameCoords ((x1,y1),(x2,y2)) =
+  let x1GameCoord = xBoardCoordToGameCoord (x1,y1)
+      x2GameCoord = xBoardCoordToGameCoord (x2,y2)
+  in ((x1GameCoord,y1-1),(x2GameCoord,y2-1))
+  where xBoardCoordToGameCoord :: Coordinate -> Int
+        xBoardCoordToGameCoord (x,y) = if even y
+                                       then (x-2)`div`2
+                                       else (x-1)`div`2
 
-getCol :: Coordinate -> Int
-getCol = fst
-getRow :: Coordinate -> Int
-getRow = snd
+boardMoveToGameMove :: Move -> Move
+boardMoveToGameMove = map boardCoordsToGameCoords
+
 
 isValidMove :: GameState -> Move -> Bool
 isValidMove = undefined
