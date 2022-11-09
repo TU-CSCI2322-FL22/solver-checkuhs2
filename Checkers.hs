@@ -66,11 +66,11 @@ makeLegalMove gs@(player,board) ((s,e):ms) =
                              then (getCol s, (getRow s + getRow e)`div`2) else (getCol e,(getRow s + getRow e)`div`2)
                              else if getCol e > getCol s {-jumped right on odd row-}
                              then (getCol e, (getRow s + getRow e)`div`2) else (getCol s,(getRow s + getRow e)`div`2)
-              piece = head $ drop (getCol s) (head $ drop (7 - getRow s) bd)
+              piece = getPieceAtIndex gs s
           in updateBoard (updateBoard (updateBoard bd Nothing s) Nothing jumpedCoords) piece e
         makeMoveMove :: Board -> (Coordinate,Coordinate) -> Board
         makeMoveMove bd (s,e) =
-          let piece = head $ drop (getCol s) (head $ drop (7 - getRow s) bd)
+          let piece = getPieceAtIndex gs s
           in updateBoard (updateBoard bd Nothing s) piece e
         updateBoard :: Board -> Maybe Piece -> Coordinate -> Board
         updateBoard bd piece (col,row) =
@@ -105,6 +105,14 @@ boardMoveToGameMove = map boardCoordsToGameCoords
 --function to index a location with a GameState and Coordinate and return a Maybe Piece
 getPieceAtIndex :: GameState -> Coordinate -> Maybe Piece
 getPieceAtIndex (player,board) (x,y) = head $ drop x (head $ drop (7 - y) board)
+
+getJumpedCoordinates :: GameState -> Coordinate -> Coordinate -> Coordinate
+getJumpedCoordinates (player,board) (x1,y1) (x2,y2) = 
+  if even y1 --if its on an even row
+  then if x2 > x1 {-jumped right on even row-}
+  then (x1, (y1 + y2)`div`2) else (x2,(y1 + y2)`div`2)
+  else if x2 > x1 {-jumped right on odd row-}
+  then (x2, (y1 + y2)`div`2) else (x1,(y1 + y2)`div`2)
 
 isValidMove :: GameState -> Move -> Bool
 isValidMove gs [] = False
