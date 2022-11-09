@@ -107,7 +107,7 @@ getPieceAtIndex :: GameState -> Coordinate -> Maybe Piece
 getPieceAtIndex (player,board) (x,y) = head $ drop x (head $ drop (7 - y) board)
 
 getJumpedCoordinates :: (Coordinate, Coordinate) -> Coordinate
-getJumpedCoordinates ((x1,y1),(x2,y2)) = 
+getJumpedCoordinates ((x1,y1),(x2,y2)) =
   if even y1 --if its on an even row
   then if x2 > x1 {-jumped right on even row-}
   then (x1, (y1 + y2)`div`2) else (x2,(y1 + y2)`div`2)
@@ -154,9 +154,23 @@ isValidMovement gs@(Black,board) ((x1,y1),(x2,y2)) =
 
 
 getValidMoves :: GameState -> [Move]
-getValidMoves gs@(player,board) = [getMovesForPiece gs (x,y) | y <- [0..7], x <- [0..3], getPieceAtIndex gs (x,y) `elem` [Just(player,Peasant), Just(player,Emperor)]]
-  where getMovesForPiece :: GameState -> Coordinate -> Move
-        getMovesForPiece gs (x,y) = [((x,y),(x2,y2)) | y2 <- [y-2..y+2], x2 <- [x-1..x+1], isValidMove gs [((x,y),(x2,y2))] ]
+getValidMoves gs@(player,board) = getMovesInRows board 7
+  where getMovesInRows :: Board -> Int -> [Move]
+        getMovesInRows [] _ = []
+        getMovesInRows (row:rows) y = getMovesForRow row (0,y) ++ getMovesInRows rows (y-1)
+        getMovesForRow :: [Maybe Piece] -> Coordinate -> [Move]
+        getMovesForRow [] _ = []
+        getMovesForRow (Just(piecePlayer,_):pieces) coord@(x,y) = (if piecePlayer == player then getSingleMoves coord else []) ++ getMovesForRow pieces (x+1,y)
+        getMovesForRow (Nothing:pieces) (x,y) = getMovesForRow pieces (x+1,y)
+        getSingleMoves :: Coordinate -> [Move]
+        getSingleMoves (x,y) = [[((x,y),(x2,y2))] | y2 <- [y-1..y+1], x2 <- [x-1..x+1], isValidMove gs [((x,y),(x2,y2))] ]
+
+
+
+
+
+
+
 
 f :: Char -> Maybe Piece
 f 'n' = Nothing
