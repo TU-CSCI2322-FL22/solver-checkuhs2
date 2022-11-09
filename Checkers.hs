@@ -160,10 +160,22 @@ getValidMoves gs@(player,board) = getMovesInRows board 7
         getMovesInRows (row:rows) y = getMovesForRow row (0,y) ++ getMovesInRows rows (y-1)
         getMovesForRow :: [Maybe Piece] -> Coordinate -> [Move]
         getMovesForRow [] _ = []
-        getMovesForRow (Just(piecePlayer,_):pieces) coord@(x,y) = (if piecePlayer == player then getSingleMoves coord else []) ++ getMovesForRow pieces (x+1,y)
+        getMovesForRow (Just(piecePlayer,_):pieces) coord@(x,y) = (if piecePlayer == player then getMovesForPiece coord else []) ++ getMovesForRow pieces (x+1,y)
         getMovesForRow (Nothing:pieces) (x,y) = getMovesForRow pieces (x+1,y)
+        getMovesForPiece :: Coordinate -> [Move]
+        getMovesForPiece coord = getSingleMoves coord ++ getJumpMoves coord
         getSingleMoves :: Coordinate -> [Move]
-        getSingleMoves (x,y) = [[((x,y),(x2,y2))] | y2 <- [y-1..y+1], x2 <- [x-1..x+1], isValidMove gs [((x,y),(x2,y2))] ]
+        getSingleMoves (x,y) = [[((x,y),(x2,y2))] | y2 <- [y-1..y+1], x2 <- [x-1..x+1], isValidMove gs [((x,y),(x2,y2))]]
+        getJumpMoves :: Coordinate -> [Move]
+        getJumpMoves (x,y) = [getJumpMove ((x,y),(x2,y2)) | y2 <- [y-2,y+2], x2 <- [x-1,x+1], isValidMove gs [((x,y),(x2,y2))]]
+        getJumpMove :: (Coordinate,Coordinate) -> Move
+        getJumpMove (start,end) = (start,end):getJumpMove 
+        {-
+        The difficulty with getJump move is that every possible jump must be considered
+        This includes cases where a string of jumps are jumped with more jumps possible
+        Each individual case needs to have its own move, which means the recursion must return
+        a list of lists, each for every possible stopping place
+        -}
 
 
 
