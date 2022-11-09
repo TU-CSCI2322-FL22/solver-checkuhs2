@@ -4,6 +4,7 @@
 import Data.List
 import Data.Maybe (isNothing)
 
+
 data Player = Red | Black deriving (Eq,Show)
 data Kind = Emperor | Peasant deriving (Eq,Show)
 
