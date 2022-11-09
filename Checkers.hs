@@ -2,9 +2,11 @@
 {-# HLINT ignore "Use guards" #-}
 {-# HLINT ignore "Use !!" #-}
 import Data.List
+import Data.Maybe (isNothing)
+
 
 data Player = Red | Black deriving (Eq,Show)
-data Kind = Emperor | Peasent deriving (Eq,Show)
+data Kind = Emperor | Peasant deriving (Eq,Show)
 
 type Piece = (Player,Kind)
 type Board = [[Maybe Piece]]
@@ -16,9 +18,9 @@ type GameState = (Player,Board)
 writeRow :: Integer -> [Maybe Piece] -> String
 writeRow num ((Just piece):xs) =
   let symbol = case piece of
-                 (Red,Peasent) -> "r"
+                 (Red,Peasant) -> "r"
                  (Red,Emperor) -> "R"
-                 (Black,Peasent) -> "b"
+                 (Black,Peasant) -> "b"
                  (Black,Emperor) -> "B"
   in if num `mod` 2 == 0
     then "   | " ++ symbol ++ " |" ++ (writeRow num xs)
@@ -65,11 +67,11 @@ makeLegalMove gs@(player,board) ((s,e):ms) =
                              then (getCol s, (getRow s + getRow e)`div`2) else (getCol e,(getRow s + getRow e)`div`2)
                              else if getCol e > getCol s {-jumped right on odd row-}
                              then (getCol e, (getRow s + getRow e)`div`2) else (getCol s,(getRow s + getRow e)`div`2)
-              piece = head $ drop (getCol s) (head $ drop (7 - getRow s) bd)
+              piece = getPieceAtIndex gs s
           in updateBoard (updateBoard (updateBoard bd Nothing s) Nothing jumpedCoords) piece e
         makeMoveMove :: Board -> (Coordinate,Coordinate) -> Board
         makeMoveMove bd (s,e) =
-          let piece = head $ drop (getCol s) (head $ drop (7 - getRow s) bd)
+          let piece = getPieceAtIndex gs s
           in updateBoard (updateBoard bd Nothing s) piece e
         updateBoard :: Board -> Maybe Piece -> Coordinate -> Board
         updateBoard bd piece (col,row) =
@@ -101,17 +103,107 @@ boardCoordsToGameCoords ((x1,y1),(x2,y2)) =
 boardMoveToGameMove :: Move -> Move
 boardMoveToGameMove = map boardCoordsToGameCoords
 
+--function to index a location with a GameState and Coordinate and return a Maybe Piece
+getPieceAtIndex :: GameState -> Coordinate -> Maybe Piece
+getPieceAtIndex (player,board) (x,y) = head $ drop x (head $ drop (7 - y) board)
+
+getJumpedCoordinates :: (Coordinate, Coordinate) -> Coordinate
+getJumpedCoordinates ((x1,y1),(x2,y2)) =
+  if even y1 --if its on an even row
+  then if x2 > x1 {-jumped right on even row-}
+  then (x1, (y1 + y2)`div`2) else (x2,(y1 + y2)`div`2)
+  else if x2 > x1 {-jumped right on odd row-}
+  then (x2, (y1 + y2)`div`2) else (x1,(y1 + y2)`div`2)
 
 isValidMove :: GameState -> Move -> Bool
-isValidMove = undefined
+isValidMove gs [] = False
+isValidMove gs [m] = isValidMovement gs m
+isValidMove gs (m:ms) = isValidMovement gs m && isValidMove (makeLegalMove gs [m]) ms
+
+
+isValidMovement :: GameState -> ((Int, Int), (Int, Int)) -> Bool
+isValidMovement gs@(Red,board) ((x1,y1),(x2,y2)) =
+  let dy = y2-y1
+      dx = x2-x1
+  in  x1 `elem` [0..3] && x2 `elem` [0..3] && y1 `elem` [0..7] && y2 `elem` [0..7] && isNothing (getPieceAtIndex gs (x2,y2)) && case getPieceAtIndex gs (x1,y1) of
+        Just(Red,Peasant) -> case dy of
+                              1 -> case (y1 `mod` 2) of 
+                                    0 -> dx `elem` [0,-1]
+                                    1 -> dx `elem` [0,1]
+                              2 -> abs dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
+                              _ -> False
+        Just(Red,Emperor) -> case dy of
+                              1 -> case (y1 `mod` 2) of 
+                                    0 -> dx `elem` [0,-1]
+                                    1 -> dx `elem` [0,1]
+                              -1 -> case (y1 `mod` 2) of 
+                                    0 -> dx `elem` [0,-1]
+                                    1 -> dx `elem` [0,1]
+                              2 -> abs dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
+                              -2 -> abs dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
+                              _ -> False
+        _ -> False
+isValidMovement gs@(Black,board) ((x1,y1),(x2,y2)) =
+  let dy = y1-y2
+      dx = x2-x1
+  in  x1 `elem` [0..3] && x2 `elem` [0..3] && y1 `elem` [0..7] && y2 `elem` [0..7] && isNothing (getPieceAtIndex gs (x2,y2)) && case getPieceAtIndex gs (x1,y1) of
+        Just(Black,Peasant) -> case dy of
+                            1 -> case (y1 `mod` 2) of 
+                                    0 -> dx `elem` [0,-1]
+                                    1 -> dx `elem` [0,1]
+                            2 -> abs dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
+                            _ -> False
+        Just(Black,Emperor) -> case dy of
+                            1 -> case (y1 `mod` 2) of 
+                                    0 -> dx `elem` [0,-1]
+                                    1 -> dx `elem` [0,1]
+                            -1 -> case (y1 `mod` 2) of 
+                                    0 -> dx `elem` [0,-1]
+                                    1 -> dx `elem` [0,1]
+                            2 -> abs dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
+                            -2 -> abs dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
+                            _ -> False
+        _ -> False
+
 
 getValidMoves :: GameState -> [Move]
-getValidMoves = undefined
+getValidMoves gs@(player,board) = getMovesInRows board 7
+  where getMovesInRows :: Board -> Int -> [Move]
+        getMovesInRows [] _ = []
+        getMovesInRows (row:rows) y = getMovesForRow row (0,y) ++ getMovesInRows rows (y-1)
+        getMovesForRow :: [Maybe Piece] -> Coordinate -> [Move]
+        getMovesForRow [] _ = []
+        getMovesForRow (Just(piecePlayer,_):pieces) coord@(x,y) = (if piecePlayer == player then getMovesForPiece coord else []) ++ getMovesForRow pieces (x+1,y)
+        getMovesForRow (Nothing:pieces) (x,y) = getMovesForRow pieces (x+1,y)
+        getMovesForPiece :: Coordinate -> [Move]
+        getMovesForPiece coord = getSingleMoves coord ++ getJumpMoves gs coord
+        getSingleMoves :: Coordinate -> [Move]
+        getSingleMoves (x,y) = [[((x,y),(x2,y2))] | y2 <- [y-1..y+1], x2 <- [x-1..x+1], isValidMove gs [((x,y),(x2,y2))]]
+        getJumpMoves :: GameState -> Coordinate -> [Move]
+        getJumpMoves state p1@(x,y) = [[((x,y),(x2,y2))] | p2@(x2,y2) <- possibleJumpLocs (x,y), isValidMove state [((x,y),(x2,y2))]]
+        -- getJumpMove :: GameState -> (Coordinate,Coordinate) -> Move
+        -- getJumpMove state (start,end) = [(start,end)] : [(start,end)] ++ getJumpMoves (makeLegalMove state [(start,end)]) (end)
+        
+possibleJumpLocs :: Coordinate -> [Coordinate]  
+possibleJumpLocs (x,y) = [((x-1),(y-2)),((x-1),(y+2)),((x+1),(y-2)),((x+1),(y+2))]
+        {-
+        The difficulty with getJump move is that every possible jump must be considered
+        This includes cases where a string of jumps are jumped with more jumps possible
+        Each individual case needs to have its own move, which means the recursion must return
+        a list of lists, each for every possible stopping place
+        -}
+
+
+
+
+
+
+
 
 f :: Char -> Maybe Piece
 f 'n' = Nothing
-f 'r' = Just(Red,Peasent)
-f 'b' = Just(Black,Peasent)
+f 'r' = Just(Red,Peasant)
+f 'b' = Just(Black,Peasant)
 
 defaultBoard =
   [
@@ -124,8 +216,36 @@ defaultBoard =
     map f "rrrr",
     map f "rrrr"
   ]
-
 defaultGame = (Black,defaultBoard)
+
+testBoard =
+  [
+    map f "nnnn",
+    map f "nnnn",
+    map f "nnnn",
+    map f "nnbn",
+    map f "nrnn",
+    map f "nnnn",
+    map f "nnnn",
+    map f "nnnn"
+  ]
+testGameB = (Black,testBoard)
+testGameR = (Red,testBoard)
+
+testBoard2 =
+  [
+    map f "nnnn",
+    map f "nnnn",
+    map f "nnnn",
+    map f "nnnn",
+    map f "nnbn",
+    map f "nnrn",
+    map f "nnnn",
+    map f "nnnn"
+  ]
+testGame2B = (Black,testBoard2)
+testGame2R = (Red,testBoard2)
+
 {-
 |||||(0,7)|||||(1,7)|||||(2,7)|||||(3,7)
 (0,6)|||||(1,6)|||||(2,6)|||||(3,6)|||||
@@ -135,6 +255,7 @@ defaultGame = (Black,defaultBoard)
 (0,2)|||||(1,2)|||||(2,2)|||||(3,2)|||||
 |||||(0,1)|||||(1,1)|||||(2,1)|||||(3,1)
 (0,0)|||||(1,0)|||||(2,0)|||||(3,0)|||||
+
 
     1   2   3   4   5   6   7   8
   ---------------------------------
