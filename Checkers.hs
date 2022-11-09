@@ -126,12 +126,18 @@ isValidMovement gs@(Red,board) ((x1,y1),(x2,y2)) =
       dx = x2-x1
   in  x1 `elem` [0..3] && x2 `elem` [0..3] && y1 `elem` [0..7] && y2 `elem` [0..7] && isNothing (getPieceAtIndex gs (x2,y2)) && case getPieceAtIndex gs (x1,y1) of
         Just(Red,Peasant) -> case dy of
-                              1 -> dx `elem` [0,1]
+                              1 -> case (y1 `mod` 2) of 
+                                    0 -> dx `elem` [0,-1]
+                                    1 -> dx `elem` [0,1]
                               2 -> abs dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
                               _ -> False
         Just(Red,Emperor) -> case dy of
-                              1 -> dx `elem` [0,1]
-                              -1 -> dx `elem` [0,1]
+                              1 -> case (y1 `mod` 2) of 
+                                    0 -> dx `elem` [0,-1]
+                                    1 -> dx `elem` [0,1]
+                              -1 -> case (y1 `mod` 2) of 
+                                    0 -> dx `elem` [0,-1]
+                                    1 -> dx `elem` [0,1]
                               2 -> abs dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
                               -2 -> abs dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
                               _ -> False
@@ -141,14 +147,20 @@ isValidMovement gs@(Black,board) ((x1,y1),(x2,y2)) =
       dx = x2-x1
   in  x1 `elem` [0..3] && x2 `elem` [0..3] && y1 `elem` [0..7] && y2 `elem` [0..7] && isNothing (getPieceAtIndex gs (x2,y2)) && case getPieceAtIndex gs (x1,y1) of
         Just(Black,Peasant) -> case dy of
-                            1 -> dx `elem` [0,1]
+                            1 -> case (y1 `mod` 2) of 
+                                    0 -> dx `elem` [0,-1]
+                                    1 -> dx `elem` [0,1]
                             2 -> abs dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
                             _ -> False
         Just(Black,Emperor) -> case dy of
-                            1 -> dx `elem` [0,1]
-                            -1 -> dx `elem` [0,1]
+                            1 -> case (y1 `mod` 2) of 
+                                    0 -> dx `elem` [0,-1]
+                                    1 -> dx `elem` [0,1]
+                            -1 -> case (y1 `mod` 2) of 
+                                    0 -> dx `elem` [0,-1]
+                                    1 -> dx `elem` [0,1]
                             2 -> abs dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
-                            -2 -> dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
+                            -2 -> abs dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
                             _ -> False
         _ -> False
 
@@ -163,13 +175,16 @@ getValidMoves gs@(player,board) = getMovesInRows board 7
         getMovesForRow (Just(piecePlayer,_):pieces) coord@(x,y) = (if piecePlayer == player then getMovesForPiece coord else []) ++ getMovesForRow pieces (x+1,y)
         getMovesForRow (Nothing:pieces) (x,y) = getMovesForRow pieces (x+1,y)
         getMovesForPiece :: Coordinate -> [Move]
-        getMovesForPiece coord = getSingleMoves coord ++ getJumpMoves coord
+        getMovesForPiece coord = getSingleMoves coord ++ getJumpMoves gs coord
         getSingleMoves :: Coordinate -> [Move]
         getSingleMoves (x,y) = [[((x,y),(x2,y2))] | y2 <- [y-1..y+1], x2 <- [x-1..x+1], isValidMove gs [((x,y),(x2,y2))]]
-        getJumpMoves :: Coordinate -> [Move]
-        getJumpMoves (x,y) = [getJumpMove ((x,y),(x2,y2)) | y2 <- [y-2,y+2], x2 <- [x-1,x+1], isValidMove gs [((x,y),(x2,y2))]]
-        getJumpMove :: (Coordinate,Coordinate) -> Move
-        getJumpMove (start,end) = (start,end):getJumpMove 
+        getJumpMoves :: GameState -> Coordinate -> [Move]
+        getJumpMoves state p1@(x,y) = [[((x,y),(x2,y2))] | p2@(x2,y2) <- possibleJumpLocs (x,y), isValidMove state [((x,y),(x2,y2))]]
+        -- getJumpMove :: GameState -> (Coordinate,Coordinate) -> Move
+        -- getJumpMove state (start,end) = [(start,end)] : [(start,end)] ++ getJumpMoves (makeLegalMove state [(start,end)]) (end)
+        
+possibleJumpLocs :: Coordinate -> [Coordinate]  
+possibleJumpLocs (x,y) = [((x-1),(y-2)),((x-1),(y+2)),((x+1),(y-2)),((x+1),(y+2))]
         {-
         The difficulty with getJump move is that every possible jump must be considered
         This includes cases where a string of jumps are jumped with more jumps possible
@@ -200,8 +215,34 @@ defaultBoard =
     map f "rrrr",
     map f "rrrr"
   ]
-
 defaultGame = (Black,defaultBoard)
+
+testBoard =
+  [
+    map f "nnnn",
+    map f "nnnn",
+    map f "nnnn",
+    map f "nnbn",
+    map f "nrnn",
+    map f "nnnn",
+    map f "nnnn",
+    map f "nnnn"
+  ]
+testGame = (Black,testBoard)
+
+testBoard2 =
+  [
+    map f "nnnn",
+    map f "nnnn",
+    map f "nnnn",
+    map f "nnnn",
+    map f "nnbn",
+    map f "nnrn",
+    map f "nnnn",
+    map f "nnnn"
+  ]
+testGame2 = (Black,testBoard2)
+
 {-
 |||||(0,7)|||||(1,7)|||||(2,7)|||||(3,7)
 (0,6)|||||(1,6)|||||(2,6)|||||(3,6)|||||
@@ -212,8 +253,6 @@ defaultGame = (Black,defaultBoard)
 |||||(0,1)|||||(1,1)|||||(2,1)|||||(3,1)
 (0,0)|||||(1,0)|||||(2,0)|||||(3,0)|||||
 
-if x1<x2 then x2 else x1,y2-1
-(1,5)->(0,4)
 
     1   2   3   4   5   6   7   8
   ---------------------------------
