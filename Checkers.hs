@@ -102,8 +102,9 @@ boardCoordsToGameCoords ((x1,y1),(x2,y2)) =
 boardMoveToGameMove :: Move -> Move
 boardMoveToGameMove = map boardCoordsToGameCoords
 
+--function to index a location with a GameState and Coordinate and return a Maybe Piece
 getPieceAtIndex :: GameState -> Coordinate -> Maybe Piece
-getPieceAtIndex (player,board) (x,y) = head $ head (drop (x-1) (take x (drop (y-1) (take y board))))
+getPieceAtIndex (player,board) (x,y) = head $ drop x (head $ drop (7 - y) board)
 
 isValidMove :: GameState -> Move -> Bool
 isValidMove gs [] = False
@@ -111,45 +112,45 @@ isValidMove gs [m] = isValidMovement gs m
 isValidMove gs (m:ms) = isValidMovement gs m && isValidMove (makeLegalMove gs [m]) ms
 
 
-isValidMovement :: GameState -> (Coordinate,Coordinate) -> Bool
+isValidMovement :: GameState -> ((Int, Int), (Int, Int)) -> Bool
 isValidMovement gs@(Red,board) ((x1,y1),(x2,y2)) =
-  let sPiece = getPieceAtIndex gs (x1,y1)
-      ePiece = getPieceAtIndex gs (x2,y2)
-      dy = y2-y1
-      dx = x1-x2
-  in  isNothing ePiece && case sPiece of
-       Just(Red,Peasant) -> case dy of
-                             1 -> dx `elem` [0,1]
-                             2 -> dx == 1 && getPieceAtIndex gs ((if(x1>x2) then x2 else x1),y2-1) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
-                             _ -> False
-       Just(Red,Emperor) -> case dy of
-                             1 -> dx `elem` [0,1]
-                             -1 -> dx `elem` [0,1]
-                             2 -> dx == 1 && getPieceAtIndex gs ((if(x1>x2) then x2 else x1),y2-1) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
-                             -2 -> dx == 1 && getPieceAtIndex gs ((if(x2>x1) then x2 else x1),y2+1) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
-                             _ -> False
-       _ -> False
+  let dy = y2-y1
+      dx = abs(x1-x2)
+  in  x1 `elem` [0..3] && x2 `elem` [0..3] && y1 `elem` [0..7] && y2 `elem` [0..7] && isNothing (getPieceAtIndex gs (x2,y2)) && case getPieceAtIndex gs (x1,y1) of
+        Just(Red,Peasant) -> case dy of
+                              1 -> dx `elem` [0,1]
+                              2 -> dx == 1 && getPieceAtIndex gs (if x1>x2 then x2 else x1,y2-1) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
+                              _ -> False
+        Just(Red,Emperor) -> case dy of
+                              1 -> dx `elem` [0,1]
+                              -1 -> dx `elem` [0,1]
+                              2 -> dx == 1 && getPieceAtIndex gs (if x1>x2 then x2 else x1,y2-1) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
+                              -2 -> dx == 1 && getPieceAtIndex gs (if x2>x1 then x2 else x1,y2+1) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
+                              _ -> False
+        _ -> False
 isValidMovement gs@(Black,board) ((x1,y1),(x2,y2)) =
-  let sPiece = getPieceAtIndex gs (x1,y1)
-      ePiece = getPieceAtIndex gs (x2,y2)
-      dy = y1-y2
-      dx = x1-x2
-  in  isNothing ePiece && case sPiece of
-       Just(Black,Peasant) -> case dy of
-                             1 -> dx `elem` [0,1]
-                             2 -> dx == 1 && getPieceAtIndex gs ((if(x1>x2) then x2 else x1),y2-1) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
-                             _ -> False
-       Just(Black,Emperor) -> case dy of
-                             1 -> dx `elem` [0,1]
-                             -1 -> dx `elem` [0,1]
-                             2 -> dx == 1 && getPieceAtIndex gs ((if(x1>x2) then x2 else x1),y2-1) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
-                             -2 -> dx == 1 && getPieceAtIndex gs ((if(x2>x1) then x2 else x1),y2+1) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
-                             _ -> False
-       _ -> False
+  let dy = y1-y2
+      dx = abs(x1-x2)
+  in  x1 `elem` [0..3] && x2 `elem` [0..3] && y1 `elem` [0..7] && y2 `elem` [0..7] && isNothing (getPieceAtIndex gs (x2,y2)) && case getPieceAtIndex gs (x1,y1) of
+        Just(Black,Peasant) -> case dy of
+                            1 -> dx `elem` [0,1]
+                            2 -> dx == 1 && getPieceAtIndex gs (if x1>x2 then x2 else x1,y2-1) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
+                            _ -> False
+        Just(Black,Emperor) -> case dy of
+                            1 -> dx `elem` [0,1]
+                            -1 -> dx `elem` [0,1]
+                            2 -> dx == 1 && getPieceAtIndex gs (if x1>x2 then x2 else x1,y2-1) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
+                            -2 -> dx == 1 && getPieceAtIndex gs (if x2>x1 then x2 else x1,y2+1) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
+                            _ -> False
+        _ -> False
 
 
 getValidMoves :: GameState -> [Move]
-getValidMoves gs@(player,board) = undefined
+getValidMoves gs@(Red,board) = [getMovesForPiece gs (x,y) | y <- [0..7], x <- [0..3], getPieceAtIndex gs (x,y) `elem` [Just(Red,Peasant), Just(Red,Emperor)]]
+getValidMoves gs@(Black,board) = [getMovesForPiece gs (x,y) | y <- [0..7], x <- [0..3], getPieceAtIndex gs (x,y) `elem` [Just(Black,Peasant), Just(Black,Emperor)]]
+
+getMovesForPiece :: GameState -> Coordinate -> Move
+getMovesForPiece gs (x,y) = undefined --filter isValidMove []
 
 f :: Char -> Maybe Piece
 f 'n' = Nothing
