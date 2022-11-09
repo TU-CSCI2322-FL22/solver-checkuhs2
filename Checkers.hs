@@ -154,11 +154,9 @@ isValidMovement gs@(Black,board) ((x1,y1),(x2,y2)) =
 
 
 getValidMoves :: GameState -> [Move]
-getValidMoves gs@(Red,board) = [getMovesForPiece gs (x,y) | y <- [0..7], x <- [0..3], getPieceAtIndex gs (x,y) `elem` [Just(Red,Peasant), Just(Red,Emperor)]]
-getValidMoves gs@(Black,board) = [getMovesForPiece gs (x,y) | y <- [0..7], x <- [0..3], getPieceAtIndex gs (x,y) `elem` [Just(Black,Peasant), Just(Black,Emperor)]]
-
-getMovesForPiece :: GameState -> Coordinate -> Move
-getMovesForPiece gs (x,y) = undefined --filter isValidMove []
+getValidMoves gs@(player,board) = [getMovesForPiece gs (x,y) | y <- [0..7], x <- [0..3], getPieceAtIndex gs (x,y) `elem` [Just(player,Peasant), Just(player,Emperor)]]
+  where getMovesForPiece :: GameState -> Coordinate -> Move
+        getMovesForPiece gs (x,y) = [((x,y),(x2,y2)) | y2 <- [y-2..y+2], x2 <- [x-1..x+1], isValidMove gs [((x,y),(x2,y2))] ]
 
 f :: Char -> Maybe Piece
 f 'n' = Nothing
@@ -187,6 +185,8 @@ defaultGame = (Black,defaultBoard)
 (0,2)|||||(1,2)|||||(2,2)|||||(3,2)|||||
 |||||(0,1)|||||(1,1)|||||(2,1)|||||(3,1)
 (0,0)|||||(1,0)|||||(2,0)|||||(3,0)|||||
+
+if x1<x2 then x2 else x1,y2-1
 
     1   2   3   4   5   6   7   8
   ---------------------------------
