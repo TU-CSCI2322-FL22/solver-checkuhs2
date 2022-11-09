@@ -106,8 +106,8 @@ boardMoveToGameMove = map boardCoordsToGameCoords
 getPieceAtIndex :: GameState -> Coordinate -> Maybe Piece
 getPieceAtIndex (player,board) (x,y) = head $ drop x (head $ drop (7 - y) board)
 
-getJumpedCoordinates :: GameState -> Coordinate -> Coordinate -> Coordinate
-getJumpedCoordinates (player,board) (x1,y1) (x2,y2) = 
+getJumpedCoordinates :: (Coordinate, Coordinate) -> Coordinate
+getJumpedCoordinates ((x1,y1),(x2,y2)) = 
   if even y1 --if its on an even row
   then if x2 > x1 {-jumped right on even row-}
   then (x1, (y1 + y2)`div`2) else (x2,(y1 + y2)`div`2)
@@ -127,13 +127,13 @@ isValidMovement gs@(Red,board) ((x1,y1),(x2,y2)) =
   in  x1 `elem` [0..3] && x2 `elem` [0..3] && y1 `elem` [0..7] && y2 `elem` [0..7] && isNothing (getPieceAtIndex gs (x2,y2)) && case getPieceAtIndex gs (x1,y1) of
         Just(Red,Peasant) -> case dy of
                               1 -> dx `elem` [0,1]
-                              2 -> dx == 1 && getPieceAtIndex gs (if x1>x2 then x2 else x1,y2-1) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
+                              2 -> dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
                               _ -> False
         Just(Red,Emperor) -> case dy of
                               1 -> dx `elem` [0,1]
                               -1 -> dx `elem` [0,1]
-                              2 -> dx == 1 && getPieceAtIndex gs (if x1>x2 then x2 else x1,y2-1) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
-                              -2 -> dx == 1 && getPieceAtIndex gs (if x2>x1 then x2 else x1,y2+1) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
+                              2 -> dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
+                              -2 -> dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
                               _ -> False
         _ -> False
 isValidMovement gs@(Black,board) ((x1,y1),(x2,y2)) =
@@ -142,13 +142,13 @@ isValidMovement gs@(Black,board) ((x1,y1),(x2,y2)) =
   in  x1 `elem` [0..3] && x2 `elem` [0..3] && y1 `elem` [0..7] && y2 `elem` [0..7] && isNothing (getPieceAtIndex gs (x2,y2)) && case getPieceAtIndex gs (x1,y1) of
         Just(Black,Peasant) -> case dy of
                             1 -> dx `elem` [0,1]
-                            2 -> dx == 1 && getPieceAtIndex gs (if x1>x2 then x2 else x1,y2-1) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
+                            2 -> dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
                             _ -> False
         Just(Black,Emperor) -> case dy of
                             1 -> dx `elem` [0,1]
                             -1 -> dx `elem` [0,1]
-                            2 -> dx == 1 && getPieceAtIndex gs (if x1>x2 then x2 else x1,y2-1) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
-                            -2 -> dx == 1 && getPieceAtIndex gs (if x2>x1 then x2 else x1,y2+1) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
+                            2 -> dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
+                            -2 -> dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
                             _ -> False
         _ -> False
 
