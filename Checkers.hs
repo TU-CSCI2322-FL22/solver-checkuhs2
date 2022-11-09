@@ -228,7 +228,8 @@ testBoard =
     map f "nnnn",
     map f "nnnn"
   ]
-testGame = (Black,testBoard)
+testGameB = (Black,testBoard)
+testGameR = (Red,testBoard)
 
 testBoard2 =
   [
@@ -241,7 +242,8 @@ testBoard2 =
     map f "nnnn",
     map f "nnnn"
   ]
-testGame2 = (Black,testBoard2)
+testGame2B = (Black,testBoard2)
+testGame2R = (Red,testBoard2)
 
 {-
 |||||(0,7)|||||(1,7)|||||(2,7)|||||(3,7)
