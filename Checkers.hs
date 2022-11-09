@@ -123,31 +123,31 @@ isValidMove gs (m:ms) = isValidMovement gs m && isValidMove (makeLegalMove gs [m
 isValidMovement :: GameState -> ((Int, Int), (Int, Int)) -> Bool
 isValidMovement gs@(Red,board) ((x1,y1),(x2,y2)) =
   let dy = y2-y1
-      dx = abs(x1-x2)
+      dx = x2-x1
   in  x1 `elem` [0..3] && x2 `elem` [0..3] && y1 `elem` [0..7] && y2 `elem` [0..7] && isNothing (getPieceAtIndex gs (x2,y2)) && case getPieceAtIndex gs (x1,y1) of
         Just(Red,Peasant) -> case dy of
                               1 -> dx `elem` [0,1]
-                              2 -> dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
+                              2 -> abs dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
                               _ -> False
         Just(Red,Emperor) -> case dy of
                               1 -> dx `elem` [0,1]
                               -1 -> dx `elem` [0,1]
-                              2 -> dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
-                              -2 -> dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
+                              2 -> abs dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
+                              -2 -> abs dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Black,Peasant),Just(Black,Emperor)]
                               _ -> False
         _ -> False
 isValidMovement gs@(Black,board) ((x1,y1),(x2,y2)) =
   let dy = y1-y2
-      dx = abs(x1-x2)
+      dx = x2-x1
   in  x1 `elem` [0..3] && x2 `elem` [0..3] && y1 `elem` [0..7] && y2 `elem` [0..7] && isNothing (getPieceAtIndex gs (x2,y2)) && case getPieceAtIndex gs (x1,y1) of
         Just(Black,Peasant) -> case dy of
                             1 -> dx `elem` [0,1]
-                            2 -> dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
+                            2 -> abs dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
                             _ -> False
         Just(Black,Emperor) -> case dy of
                             1 -> dx `elem` [0,1]
                             -1 -> dx `elem` [0,1]
-                            2 -> dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
+                            2 -> abs dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
                             -2 -> dx == 1 && getPieceAtIndex gs (getJumpedCoordinates ((x1,y1),(x2,y2))) `elem` [Just(Red,Peasant),Just(Red,Emperor)]
                             _ -> False
         _ -> False
@@ -201,6 +201,7 @@ defaultGame = (Black,defaultBoard)
 (0,0)|||||(1,0)|||||(2,0)|||||(3,0)|||||
 
 if x1<x2 then x2 else x1,y2-1
+(1,5)->(0,4)
 
     1   2   3   4   5   6   7   8
   ---------------------------------
