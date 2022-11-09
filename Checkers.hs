@@ -155,8 +155,9 @@ isValidMovement gs@(Black,board) ((x1,y1),(x2,y2)) =
 
 getValidMoves :: GameState -> [Move]
 getValidMoves gs@(player,board) = [getMovesForPiece gs (x,y) | y <- [0..7], x <- [0..3], getPieceAtIndex gs (x,y) `elem` [Just(player,Peasant), Just(player,Emperor)]]
-  where getMovesForPiece :: GameState -> Coordinate -> Move
-        getMovesForPiece gs (x,y) = [((x,y),(x2,y2)) | y2 <- [y-2..y+2], x2 <- [x-1..x+1], isValidMove gs [((x,y),(x2,y2))] ]
+
+getMovesForPiece :: GameState -> Coordinate -> [Move]
+getMovesForPiece gs (x,y) = [[((x,y),(x2,y2))] | y2 <- [y-2..y+2], x2 <- [x-1..x+1], isValidMove gs [((x,y),(x2,y2))] ]
 
 f :: Char -> Maybe Piece
 f 'n' = Nothing
