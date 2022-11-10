@@ -174,7 +174,8 @@ getMovesForPiece gs coords@(x,y) = getSingleMoves coords ++ getJumpMoves gs coor
           let possibleJumpLocations = filter (\e -> isValidMovement state (s,e)) $ map (addCoords s) getJumps
               followUp = [getJumpMoves (makeLegalMove state [(s,e)]) e | e <- possibleJumpLocations]
               firstMoves = map (\e -> [(s,e)]) possibleJumpLocations
-          in firstMoves ++ [head m : fm | m <- firstMoves, f <- followUp, fm <- f, fst (head fm) == snd (head m)]
+          in firstMoves ++ [head m : fm | m@((s1,e1):ms) <- firstMoves, f <- followUp, fm@((s2,e2):fms) <- f, s2 == e1]
+
 {-
 getValidMoves :: GameState -> [Move]
 getValidMoves gs@(player,board) = getMovesInRows board 7
