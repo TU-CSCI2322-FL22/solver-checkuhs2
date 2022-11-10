@@ -164,16 +164,17 @@ getValidMoves gs@(player,board) = concatMap getMovesForCell board
                                                    else []
 
 getMovesForPiece :: GameState -> Coordinate -> [Move]
-getMovesForPiece gs coords@(x,y) = getSingleMoves coords ++ getJumpMoves coords
+getMovesForPiece gs coords@(x,y) = getSingleMoves coords ++ getJumpMoves gs coords
   where getSingleMoves :: Coordinate -> [Move]
         getSingleMoves s@(x1,y1) =
           let possibleSingleMoves = map (addCoords s) getDirs
           in [ [(s,e)] | e <- possibleSingleMoves, isValidMovement gs (s,e)]
-        getJumpMoves :: Coordinate -> [Move]
-        getJumpMoves s@(x1,y1) =
-          let possibleJumpLocations = filter (\e -> isValidMovement gs (s,e)) $ map (addCoords s) getJumps
-              followUp = [e | e <- possibleJumpLocations]
-          in []
+        getJumpMoves :: GameState -> Coordinate -> [Move]
+        getJumpMoves state s@(x1,y1) =
+          let possibleJumpLocations = filter (\e -> isValidMovement state (s,e)) $ map (addCoords s) getJumps
+              followUp = [getJumpMoves (makeLegalMove state [(s,e)]) e | e <- possibleJumpLocations]
+              firstMoves = map (\e -> [(s,e)]) possibleJumpLocations
+          in firstMoves ++ [head m : fm | m <- firstMoves, f <- followUp, fm <- f, fst (head fm) == snd (head m)]
 {-
 getValidMoves :: GameState -> [Move]
 getValidMoves gs@(player,board) = getMovesInRows board 7
@@ -233,35 +234,25 @@ defaultBoard =
   makeRow 1 "rrrr"
 
 defaultGame = (Black,defaultBoard)
-{-
-testBoard =
-  [
-    map f "nnnn",
-    map f "nnnn",
-    map f "nnnn",
-    map f "nnbn",
-    map f "nrnn",
-    map f "nnnn",
-    map f "nnnn",
-    map f "nnnn"
-  ]
-testGameB = (Black,testBoard)
-testGameR = (Red,testBoard)
+
+testBoard1 =
+  makeRow 5 "nnbn" ++
+  makeRow 4 "nrnn" 
+
+testGame1B = (Black,testBoard1)
+testGame1R = (Red,testBoard1)
 
 testBoard2 =
-  [
-    map f "nnnn",
-    map f "nnnn",
-    map f "nnnn",
-    map f "nnnn",
-    map f "nnbn",
-    map f "nnrn",
-    map f "nnnn",
-    map f "nnnn"
-  ]
-testGame2B = (Black,testBoard2)
-testGame2R = (Red,testBoard2)
--}
+  makeRow 8 "nnnb" ++
+  makeRow 7 "nnnr" ++
+  makeRow 5 "nnrr" ++
+  --middle row
+  --middle row
+  makeRow 3 "nrrr" 
+
+testGame2 = (Black,testBoard2)
+
+
 {-
 |||||(2,8)|||||(4,8)|||||(6,8)|||||(8,8)
 (1,7)|||||(3,7)|||||(5,7)|||||(7,7)|||||
