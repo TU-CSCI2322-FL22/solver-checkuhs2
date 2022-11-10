@@ -66,20 +66,25 @@ printUglyShow gs = mapM_ putStrLn (uglyShow gs)
 getPieceAtLocation :: GameState -> Coordinate -> Maybe Piece
 getPieceAtLocation (player,bd) coord = lookup coord bd
 
-{-
+
 --checkWinner happens at the start of a "turn"
 --takes the current gamestate and the moves the current player can make
 --this means that if no moves can be made the 'other' player wins 
 checkWinner :: GameState -> Maybe Player
-checkWinner (Red,board) [] = Just Black
-checkWinner (Black,board) [] = Just Red
-checkWinner gs moves = Nothing
+checkWinner gs@(player,_) =
+  let moves = getValidMoves gs
+  in if null moves then Just (getOpponent player) else Nothing
 
 makeMove :: GameState -> Move -> Maybe GameState
-makeMove gs move [] = Nothing
-makeMove gs move possibleMoves =
-  if move `elem` possibleMoves then Just $ makeLegalMove gs move else Nothing
--}
+makeMove gs = foldl makePartialMove (Just gs)
+  where makePartialMove :: Maybe GameState -> (Coordinate,Coordinate) -> Maybe GameState
+        makePartialMove game m =
+          case game of Nothing -> Nothing
+                       Just g -> if isValidMovement g m
+                                 then Just (makeLegalMove g [m])
+                                 else Nothing
+
+
 
 makeLegalMove :: GameState -> Move -> GameState
 makeLegalMove gs [] = gs
@@ -102,7 +107,7 @@ updateBoard (coord,Just piece) bd = (coord,piece):bd
 
 getJumpedCoordinates :: (Coordinate, Coordinate) -> Coordinate
 getJumpedCoordinates ((x1,y1),(x2,y2)) = ((x1+x2)`div`2,(y1+y2)`div`2)
-  
+
 getOpponent :: Player -> Player
 getOpponent Red = Black
 getOpponent Black = Red
@@ -130,11 +135,11 @@ addCoords :: Coordinate -> Coordinate -> Coordinate
 addCoords (x1,y1) (x2,y2) = (x1+x2,y1+y2)
 
 isValidMovement :: GameState -> (Coordinate,Coordinate) -> Bool
-isValidMovement gs@(player,board) (s@(x1,y1), e@(x2,y2)) = 
+isValidMovement gs@(player,board) (s@(x1,y1), e@(x2,y2)) =
   let dy = abs (y1-y2)
       piece = getPieceAtLocation gs s
-  in checkValidPiece piece && checkBounds && 
-     case piece of 
+  in checkValidPiece piece && checkBounds &&
+     case piece of
       Just (_,Peasant) -> case dy of 1 -> e `elem` map (addCoords s) (getPeasantDirs player)
                                      2 -> e `elem` map (addCoords s) (getPeasantJumps player) && checkJumpedPieceEnemy
                                      _ -> False
@@ -142,11 +147,11 @@ isValidMovement gs@(player,board) (s@(x1,y1), e@(x2,y2)) =
                                      2 -> e `elem` map (addCoords s) getJumps && checkJumpedPieceEnemy
                                      _ -> False
   where checkValidPiece :: Maybe Piece -> Bool
-        checkValidPiece piece = 
+        checkValidPiece piece =
           case piece of Nothing -> False
                         Just(piecePlayer,kind) -> piecePlayer == player
-        checkBounds = x2 `elem` [1..8] && 
-                      y2 `elem` [1..8] && 
+        checkBounds = x2 `elem` [1..8] &&
+                      y2 `elem` [1..8] &&
                       isNothing (getPieceAtLocation gs e)
         checkJumpedPieceEnemy = case getPieceAtLocation gs (getJumpedCoordinates (s,e)) of
                                   Just (piecePlayer,kind) -> piecePlayer == getOpponent player
@@ -154,18 +159,18 @@ isValidMovement gs@(player,board) (s@(x1,y1), e@(x2,y2)) =
 
 getValidMoves :: GameState -> [Move]
 getValidMoves gs@(player,board) = concatMap getMovesForCell board
-  where getMovesForCell (coords,(piecePlayer,_)) = if piecePlayer == player 
+  where getMovesForCell (coords,(piecePlayer,_)) = if piecePlayer == player
                                                    then getMovesForPiece gs coords
                                                    else []
 
 getMovesForPiece :: GameState -> Coordinate -> [Move]
 getMovesForPiece gs coords@(x,y) = getSingleMoves coords ++ getJumpMoves coords
   where getSingleMoves :: Coordinate -> [Move]
-        getSingleMoves s@(x1,y1) = 
+        getSingleMoves s@(x1,y1) =
           let possibleSingleMoves = map (addCoords s) getDirs
           in [ [(s,e)] | e <- possibleSingleMoves, isValidMovement gs (s,e)]
         getJumpMoves :: Coordinate -> [Move]
-        getJumpMoves s@(x1,y1) = 
+        getJumpMoves s@(x1,y1) =
           let possibleJumpLocations = filter (\e -> isValidMovement gs (s,e)) $ map (addCoords s) getJumps
               followUp = [e | e <- possibleJumpLocations]
           in []
