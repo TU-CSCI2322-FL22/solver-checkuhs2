@@ -12,21 +12,6 @@ type Coordinate = (Int,Int)
 type Move = [(Coordinate,Coordinate)]
 type GameState = (Player,Board)
 
-readGame :: String -> Game
-readGame = undefined
-
-showGame :: Game -> String
-showGame = undefined
-
-writeGame :: Game -> FilePath -> IO ()
-writeGame = undefined
-
-loadGame :: FilePath -> IO Game 
-loadGame = undefined
-
-putWinner :: Game -> IO ()
-putWinner = undefined
-
 
 {-
 --writeShow is a helper function for prettyShow that will turn a row of pieces into a string
