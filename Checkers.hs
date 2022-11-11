@@ -174,39 +174,6 @@ getMovesForPiece gs coords@(x,y) = getSingleMoves coords ++ getJumpMoves gs coor
               firstMoves = map (\e -> [(s,e)]) possibleJumpLocations
           in firstMoves ++ [head m : fm | m@((s1,e1):ms) <- firstMoves, f <- followUp, fm@((s2,e2):fms) <- f, s2 == e1]
 
-{-
-getValidMoves :: GameState -> [Move]
-getValidMoves gs@(player,board) = getMovesInRows board 7
-  where getMovesInRows :: Board -> Int -> [Move]
-        getMovesInRows [] _ = []
-        getMovesInRows (row:rows) y = getMovesForRow row (0,y) ++ getMovesInRows rows (y-1)
-        getMovesForRow :: [Maybe Piece] -> Coordinate -> [Move]
-        getMovesForRow [] _ = []
-        getMovesForRow (Just(piecePlayer,_):pieces) coord@(x,y) = (if piecePlayer == player then getMovesForPiece coord else []) ++ getMovesForRow pieces (x+1,y)
-        getMovesForRow (Nothing:pieces) (x,y) = getMovesForRow pieces (x+1,y)
-        getMovesForPiece :: Coordinate -> [Move]
-        getMovesForPiece coord = getSingleMoves coord ++ getJumpMoves gs coord
-        getSingleMoves :: Coordinate -> [Move]
-        getSingleMoves (x,y) = [[((x,y),(x2,y2))] | y2 <- [y-1..y+1], x2 <- [x-1..x+1], isValidMove gs [((x,y),(x2,y2))]]
-        getJumpMoves :: GameState -> Coordinate -> [Move]
-        getJumpMoves state p1@(x,y) = [[((x,y),(x2,y2))] | p2@(x2,y2) <- possibleJumpLocs (x,y), isValidMove state [((x,y),(x2,y2))]]
-        -- getJumpMove :: GameState -> (Coordinate,Coordinate) -> Move
-        -- getJumpMove state (start,end) = [(start,end)] : [(start,end)] ++ getJumpMoves (makeLegalMove state [(start,end)]) (end)
-
-possibleJumpLocs :: Coordinate -> [Coordinate]
-possibleJumpLocs (x,y) = [((x-1),(y-2)),((x-1),(y+2)),((x+1),(y-2)),((x+1),(y+2))]
-       
-        The difficulty with getJump move is that every possible jump must be considered
-        This includes cases where a string of jumps are jumped with more jumps possible
-        Each individual case needs to have its own move, which means the recursion must return
-        a list of lists, each for every possible stopping place
-        -}
-
-
-
-
-
-
 
 makeRow :: Int -> String -> Board
 makeRow y pieces
