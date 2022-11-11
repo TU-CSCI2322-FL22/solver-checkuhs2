@@ -1,7 +1,4 @@
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# HLINT ignore "Use guards" #-}
-{-# HLINT ignore "Use !!" #-}
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+
 import Data.List
 import Data.Maybe (isNothing, isJust)
 
