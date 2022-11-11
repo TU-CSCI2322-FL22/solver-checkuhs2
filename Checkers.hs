@@ -1,8 +1,10 @@
+module Checkers where
 
 import Data.List
 import Data.Maybe (isNothing, isJust)
 
 
+data Outcome = Player | Tie
 data Player = Red | Black deriving (Eq,Show)
 data Kind = Emperor | Peasant deriving (Eq,Show)
 
@@ -10,8 +12,8 @@ type Piece = (Player,Kind)
 type Board = [(Coordinate,Piece)]
 type Coordinate = (Int,Int)
 type Move = [(Coordinate,Coordinate)]
-type GameState = (Player,Board)
-
+type Turn = Int
+type GameState = (Player,Board,Turn)
 
 {-
 --writeShow is a helper function for prettyShow that will turn a row of pieces into a string
@@ -43,7 +45,7 @@ prettyShow :: GameState -> String
 prettyShow = undefined
 
 uglyShow :: GameState -> [String]
-uglyShow gs@(player,board) =
+uglyShow gs@(player,board,turn) =
   let fstLine = playerToString player
   in fstLine:[rowToString y | y <- [8,7..1]]
   where playerToString Black = "Black"
@@ -68,7 +70,7 @@ getPieceAtLocation (player,bd) coord = lookup coord bd
 --checkWinner happens at the start of a "turn"
 --takes the current gamestate and the moves the current player can make
 --this means that if no moves can be made the 'other' player wins 
-checkWinner :: GameState -> Maybe Player
+checkWinner :: GameState -> Maybe Outcome
 checkWinner gs@(player,_) =
   let moves = getValidMoves gs
   in if null moves then Just (getOpponent player) else Nothing
@@ -85,8 +87,8 @@ makeMove gs = foldl makePartialMove (Just gs)
 
 
 makeLegalMove :: GameState -> Move -> GameState
-makeLegalMove gs [] = gs
-makeLegalMove gs@(player,board) (m:ms) = makeLegalMove (player, changeBoard board m) ms
+makeLegalMove gs@(player,board,turn) [] = (player,board,turn+1)
+makeLegalMove gs@(player,board,_) (m:ms) = makeLegalMove (player, changeBoard board m) ms
   where changeBoard :: Board -> (Coordinate,Coordinate) -> Board
         changeBoard bd (s@(_,sRow), e@(_,eRow))
           | abs (sRow-eRow) == 2 =
