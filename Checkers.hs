@@ -4,7 +4,7 @@ import Data.List
 import Data.Maybe (isNothing, isJust)
 
 
-data Outcome = Player | Tie
+data Outcome = Winner Player | Tie
 data Player = Red | Black deriving (Eq,Show)
 data Kind = Emperor | Peasant deriving (Eq,Show)
 
@@ -64,16 +64,16 @@ uglyShow gs@(player,board,turn) =
 printUglyShow gs = mapM_ putStrLn (uglyShow gs)
 
 getPieceAtLocation :: GameState -> Coordinate -> Maybe Piece
-getPieceAtLocation (player,bd) coord = lookup coord bd
+getPieceAtLocation (player,bd,_) coord = lookup coord bd
 
 
 --checkWinner happens at the start of a "turn"
 --takes the current gamestate and the moves the current player can make
 --this means that if no moves can be made the 'other' player wins 
-checkWinner :: GameState -> Maybe Outcome
-checkWinner gs@(player,_) =
+checkWinner :: GameState -> Outcome
+checkWinner gs@(player,_,_) =
   let moves = getValidMoves gs
-  in if null moves then Just (getOpponent player) else Nothing
+  in if null moves then Winner (getOpponent player) else Tie
 
 makeMove :: GameState -> Move -> Maybe GameState
 makeMove gs = foldl makePartialMove (Just gs)
@@ -88,7 +88,7 @@ makeMove gs = foldl makePartialMove (Just gs)
 
 makeLegalMove :: GameState -> Move -> GameState
 makeLegalMove gs@(player,board,turn) [] = (player,board,turn+1)
-makeLegalMove gs@(player,board,_) (m:ms) = makeLegalMove (player, changeBoard board m) ms
+makeLegalMove gs@(player,board,turn) (m:ms) = makeLegalMove (player, changeBoard board m,turn) ms
   where changeBoard :: Board -> (Coordinate,Coordinate) -> Board
         changeBoard bd (s@(_,sRow), e@(_,eRow))
           | abs (sRow-eRow) == 2 =
@@ -135,7 +135,7 @@ addCoords :: Coordinate -> Coordinate -> Coordinate
 addCoords (x1,y1) (x2,y2) = (x1+x2,y1+y2)
 
 isValidMovement :: GameState -> (Coordinate,Coordinate) -> Bool
-isValidMovement gs@(player,board) (s@(x1,y1), e@(x2,y2)) =
+isValidMovement gs@(player,board,_) (s@(x1,y1), e@(x2,y2)) =
   let dy = abs (y1-y2)
       piece = getPieceAtLocation gs s
   in checkValidPiece piece && checkBounds &&
@@ -158,7 +158,7 @@ isValidMovement gs@(player,board) (s@(x1,y1), e@(x2,y2)) =
                                   Nothing -> False
 
 getValidMoves :: GameState -> [Move]
-getValidMoves gs@(player,board) = concatMap getMovesForCell board
+getValidMoves gs@(player,board,_) = concatMap getMovesForCell board
   where getMovesForCell (coords,(piecePlayer,_)) = if piecePlayer == player
                                                    then getMovesForPiece gs coords
                                                    else []
