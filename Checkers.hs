@@ -46,7 +46,7 @@ prettyShow = undefined
 
 uglyShow :: GameState -> [String]
 uglyShow gs@(player,board,turn) =
-  let fstLine = playerToString player
+  let fstLine = show turn ++ " " ++ playerToString player
   in fstLine:[rowToString y | y <- [8,7..1]]
   where playerToString Black = "Black"
         playerToString Red = "Red"
@@ -61,6 +61,7 @@ uglyShow gs@(player,board,turn) =
             Just(Black,Emperor) -> "B "
             Nothing -> "_ "
 
+printUglyShow :: GameState -> IO ()
 printUglyShow gs = mapM_ putStrLn (uglyShow gs)
 
 getPieceAtLocation :: GameState -> Coordinate -> Maybe Piece
@@ -204,11 +205,12 @@ possibleJumpLocs (x,y) = [((x-1),(y-2)),((x-1),(y+2)),((x+1),(y-2)),((x+1),(y+2)
         a list of lists, each for every possible stopping place
         -}
 
-
-
-
-
-
+getPieceFromChar :: Char -> Maybe Piece
+getPieceFromChar 'R' = Just (Red,Emperor)
+getPieceFromChar 'r' = Just (Red,Peasant)
+getPieceFromChar 'B' = Just (Black,Emperor)
+getPieceFromChar 'b' = Just (Black,Peasant)
+getPieceFromChar _ = Nothing
 
 makeRow :: Int -> String -> Board
 makeRow y pieces
@@ -217,11 +219,10 @@ makeRow y pieces
   | otherwise =
     concatMap makePiece (zip pieces [1,3,5,7])
     where makePiece :: (Char,Int) -> [(Coordinate,Piece)]
-          makePiece ('b',x) = [((x,y),(Black,Peasant))]
-          makePiece ('B',x) = [((x,y),(Black,Emperor))]
-          makePiece ('r',x) = [((x,y),(Red,Peasant))]
-          makePiece ('R',x) = [((x,y),(Red,Emperor))]
-          makePiece ('n',x) = []
+          makePiece (char,x) = 
+            case getPieceFromChar char of
+              Nothing -> []
+              Just piece -> [((x,y),piece)]
 
 
 defaultBoard =
@@ -234,7 +235,8 @@ defaultBoard =
   makeRow 2 "rrrr" ++
   makeRow 1 "rrrr"
 
-defaultGame = (Black,defaultBoard)
+defaultGame :: GameState
+defaultGame = (Black,defaultBoard,0)
 
 testBoard1 =
   makeRow 5 "nnbn" ++
