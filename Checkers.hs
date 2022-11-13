@@ -3,6 +3,8 @@ module Checkers where
 import Data.List
 import Data.Maybe (isNothing, isJust)
 
+maxTurns :: Int
+maxTurns = 50
 
 data Outcome = Winner Player | Tie
 data Player = Red | Black deriving (Eq,Show)
@@ -71,10 +73,11 @@ getPieceAtLocation (player,bd,_) coord = lookup coord bd
 --checkWinner happens at the start of a "turn"
 --takes the current gamestate and the moves the current player can make
 --this means that if no moves can be made the 'other' player wins 
-checkWinner :: GameState -> Outcome
-checkWinner gs@(player,_,_) =
+checkWinner :: GameState -> Maybe Outcome
+checkWinner gs@(player,_,turn) =
   let moves = getValidMoves gs
-  in if null moves then Winner (getOpponent player) else Tie
+  in if turn > maxTurns then Nothing 
+  else if null moves then Just $ Winner (getOpponent player) else Just Tie
 
 makeMove :: GameState -> Move -> Maybe GameState
 makeMove gs = foldl makePartialMove (Just gs)

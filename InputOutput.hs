@@ -56,12 +56,12 @@ readGame str =
           rows = [8,7..1]
             
 showGame :: GameState -> String
-showGame gs = undefined
+showGame gs = unlines $ uglyShow gs
 
 writeGame :: GameState -> FilePath -> IO ()
 writeGame gs@(player,board,turn) path =
-  let strings = uglyShow gs
-  in do writeFile path $ unlines strings
+  let string = showGame gs
+  in do writeFile path string
 
 loadGame :: FilePath -> IO GameState
 loadGame path =
