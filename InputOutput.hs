@@ -70,5 +70,6 @@ loadGame path =
             Nothing -> error "Couldn't parse gameState from file"
             Just gs -> return gs
 
+--call who will win to IO
 putWinner :: GameState -> IO ()
 putWinner = undefined
