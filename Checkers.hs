@@ -45,7 +45,7 @@ prettyShow (player,board) = intercalate "\n" $ reverse $ ["\n", (show player) ++
 -}
 prettyShow :: GameState -> String
 prettyShow gs@(player,board,turn) = intercalate "\n" $ firstLines ++ [showRow y | y <- [8,7..1]]
-  where firstLines = ["", "Turn: " ++ playerString player, "Turn Number: " ++ (show turn),"","  ---------------------------------"]
+  where firstLines = ["", "Turn: " ++ playerString player, "Turn Number: " ++ (show turn),"","    1   2   3   4   5   6   7   8","  ---------------------------------"]
         playerString Black = "Black"
         playerString Red = "Red"
         showRow :: Int -> String
