@@ -30,8 +30,12 @@ readGame str =
           readMaybeBoard :: [String] -> Maybe Board
           readMaybeBoard boardStrs =
             let rowStrs = zip rows boardStrs
-                validRows = catMaybes $ map readMaybeRow rowStrs
-            in if length validRows == 8 then Just (concat validRows) else Nothing
+                rows = readMaybeRow rowStrs
+            in case sequence rows of 
+                Nothing -> Nothing
+                Just validRows -> if length validRows == 8 
+                                  then Just (concat validRows) 
+                                  else Nothing
           readMaybeRow :: (Int,String) -> Maybe Board
           readMaybeRow (y,str) =
             let pieces = concat $ words str --remove whitespace
