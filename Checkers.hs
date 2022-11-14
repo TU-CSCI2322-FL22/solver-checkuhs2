@@ -17,32 +17,6 @@ type Move = [(Coordinate,Coordinate)]
 type Turn = Int
 type GameState = (Player,Board,Turn)
 
-{-
---writeShow is a helper function for prettyShow that will turn a row of pieces into a string
-writeRow :: Integer -> [Maybe Piece] -> String
-writeRow num ((Just piece):xs) =
-  let symbol = case piece of
-                 (Red,Peasant) -> "r"
-                 (Red,Emperor) -> "R"
-                 (Black,Peasant) -> "b"
-                 (Black,Emperor) -> "B"
-  in if num `mod` 2 == 0
-    then "   | " ++ symbol ++ " |" ++ (writeRow num xs)
-  else
-    " " ++ symbol ++ " |   |" ++ (writeRow num xs)
-
-writeRow num ((Nothing):xs) = "   |   |" ++ (writeRow num xs)
-writeRow num [] = []
-
---prettyShow takes a game state and returns a human readable string representing the Gamestate
---NOTE - when testing in ghci, new lines characters will not appear unless you pass the string from prettyShow into putStrLn
---For example, if you want to test the default board in ghci, you should write: putStrLn $ prettyShow defaultBoard
-prettyShow :: GameState -> String
-prettyShow (player,board) = intercalate "\n" $ reverse $ ["\n", (show player) ++ "'s Turn", "\n", "  ---------------------------------"] ++ (aux 1 (reverse board)) ++ ["\n"]
-  where size = length board
-        aux num (row:rowTail) = [(show num) ++ " |" ++ (writeRow num row), "  ---------------------------------"] ++ aux (num + 1) rowTail
-        aux num [] = ["    1   2   3   4   5   6   7   8 "]
--}
 prettyShow :: GameState -> String
 prettyShow gs@(player,board,turn) = intercalate "\n" $ firstLines ++ [showRow y | y <- [8,7..1]]
   where firstLines = ["", "Turn: " ++ playerString player, "Turn Number: " ++ (show turn),"","    1   2   3   4   5   6   7   8","  ---------------------------------"]
@@ -194,34 +168,6 @@ getMovesForPiece gs coords@(x,y) = getSingleMoves coords ++ getJumpMoves gs coor
               followUp = [getJumpMoves (makeLegalMove state [(s,e)]) e | e <- possibleJumpLocations]
               firstMoves = map (\e -> [(s,e)]) possibleJumpLocations
           in firstMoves ++ [head m : fm | m@((s1,e1):ms) <- firstMoves, f <- followUp, fm@((s2,e2):fms) <- f, s2 == e1]
-
-{-
-getValidMoves :: GameState -> [Move]
-getValidMoves gs@(player,board) = getMovesInRows board 7
-  where getMovesInRows :: Board -> Int -> [Move]
-        getMovesInRows [] _ = []
-        getMovesInRows (row:rows) y = getMovesForRow row (0,y) ++ getMovesInRows rows (y-1)
-        getMovesForRow :: [Maybe Piece] -> Coordinate -> [Move]
-        getMovesForRow [] _ = []
-        getMovesForRow (Just(piecePlayer,_):pieces) coord@(x,y) = (if piecePlayer == player then getMovesForPiece coord else []) ++ getMovesForRow pieces (x+1,y)
-        getMovesForRow (Nothing:pieces) (x,y) = getMovesForRow pieces (x+1,y)
-        getMovesForPiece :: Coordinate -> [Move]
-        getMovesForPiece coord = getSingleMoves coord ++ getJumpMoves gs coord
-        getSingleMoves :: Coordinate -> [Move]
-        getSingleMoves (x,y) = [[((x,y),(x2,y2))] | y2 <- [y-1..y+1], x2 <- [x-1..x+1], isValidMove gs [((x,y),(x2,y2))]]
-        getJumpMoves :: GameState -> Coordinate -> [Move]
-        getJumpMoves state p1@(x,y) = [[((x,y),(x2,y2))] | p2@(x2,y2) <- possibleJumpLocs (x,y), isValidMove state [((x,y),(x2,y2))]]
-        -- getJumpMove :: GameState -> (Coordinate,Coordinate) -> Move
-        -- getJumpMove state (start,end) = [(start,end)] : [(start,end)] ++ getJumpMoves (makeLegalMove state [(start,end)]) (end)
-
-possibleJumpLocs :: Coordinate -> [Coordinate]
-possibleJumpLocs (x,y) = [((x-1),(y-2)),((x-1),(y+2)),((x+1),(y-2)),((x+1),(y+2))]
-       
-        The difficulty with getJump move is that every possible jump must be considered
-        This includes cases where a string of jumps are jumped with more jumps possible
-        Each individual case needs to have its own move, which means the recursion must return
-        a list of lists, each for every possible stopping place
-        -}
 
 getPieceFromChar :: Char -> Maybe Piece
 getPieceFromChar 'R' = Just (Red,Emperor)
