@@ -44,7 +44,22 @@ prettyShow (player,board) = intercalate "\n" $ reverse $ ["\n", (show player) ++
         aux num [] = ["    1   2   3   4   5   6   7   8 "]
 -}
 prettyShow :: GameState -> String
-prettyShow = undefined
+prettyShow gs@(player,board,turn) = intercalate "\n" $ firstLines ++ [showRow y | y <- [8,7..1]]
+  where firstLines = ["", "Turn: " ++ playerString player, "Turn Number: " ++ (show turn),"","  ---------------------------------"]
+        playerString Black = "Black"
+        playerString Red = "Red"
+        showRow :: Int -> String
+        showRow num = (show num) ++ " | " ++ (intercalate " | " (map (coordinateToString gs) (zip [1..8] (repeat num)))) ++ " |\n  ---------------------------------"
+
+coordinateToString :: GameState -> Coordinate -> String
+coordinateToString gs coor = 
+  case getPieceAtLocation gs coor of
+    Just (Red,Emperor) -> "R"
+    Just (Red,Peasant) -> "r"
+    Just (Black,Emperor) -> "B"
+    Just (Black,Peasant) -> "b"
+    Nothing -> " "
+
 
 uglyShow :: GameState -> [String]
 uglyShow gs@(player,board,turn) =
@@ -245,8 +260,11 @@ testBoard1 =
   makeRow 5 "nnbn" ++
   makeRow 4 "nrnn" 
 
-testGame1B = (Black,testBoard1)
-testGame1R = (Red,testBoard1)
+num :: Turn
+num = 1
+
+testGame1B = (Black,testBoard1,num)
+testGame1R = (Red,testBoard1,num)
 
 testBoard2 =
   makeRow 8 "nnnb" ++
