@@ -65,7 +65,7 @@ getPieceAtLocation (player,bd,_) coord = lookup coord bd
 checkWinner :: GameState -> Maybe Outcome
 checkWinner gs@(player,_,turn) =
   let moves = getValidMoves gs
-  in if turn > maxTurns then Nothing 
+  in if turn <= maxTurns then Nothing 
   else if null moves then Just $ Winner (getOpponent player) else Just Tie
 
 makeMove :: GameState -> Move -> Maybe GameState
@@ -80,7 +80,7 @@ makeMove gs = foldl makePartialMove (Just gs)
 
 
 makeLegalMove :: GameState -> Move -> GameState
-makeLegalMove gs@(player,board,turn) [] = (player,board,turn+1)
+makeLegalMove gs@(player,board,turn) [] = (getOpponent player,board,turn+1)
 makeLegalMove gs@(player,board,turn) (m:ms) = makeLegalMove (player, changeBoard board m,turn) ms
   where changeBoard :: Board -> (Coordinate,Coordinate) -> Board
         changeBoard bd (s@(_,sRow), e@(_,eRow))
