@@ -169,12 +169,15 @@ getMovesForPiece gs coords@(x,y) = getSingleMoves coords ++ getJumpMoves gs coor
               firstMoves = map (\e -> [(s,e)]) possibleJumpLocations
           in firstMoves ++ [head m : fm | m@((s1,e1):ms) <- firstMoves, f <- followUp, fm@((s2,e2):fms) <- f, s2 == e1]
 
+<<<<<<< HEAD
 getPieceFromChar :: Char -> Maybe Piece
 getPieceFromChar 'R' = Just (Red,Emperor)
 getPieceFromChar 'r' = Just (Red,Peasant)
 getPieceFromChar 'B' = Just (Black,Emperor)
 getPieceFromChar 'b' = Just (Black,Peasant)
 getPieceFromChar _ = Nothing
+=======
+>>>>>>> abb79b5d849044954eba1d74acb857d340fea736
 
 makeRow :: Int -> String -> Board
 makeRow y pieces
