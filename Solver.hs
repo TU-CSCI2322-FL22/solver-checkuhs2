@@ -36,6 +36,22 @@ predictedWinner gs@(player,board,turn) =
           else
             traceShow ("Possible Moves: " ++ (show possibleMoves)) $ foldl checkMoves Nothing possibleMoves
 
+
+predictedWinner2 :: GameState -> Outcome
+predictedWinner2 gs@(player,board,turn) =
+  case checkWinner gs of
+    Nothing ->
+      let possibleMoves = [makeLegalMove gs move | move <- (getValidMoves gs)]
+          outcomes = map predictedWinner2 possibleMoves
+      in if Winner player `elem` outcomes
+        then Winner player
+      else if Tie `elem` outcomes
+        then Tie
+      else Winner $ getOpponent player
+    Just (Winner p) -> 
+      if p == player then Winner player
+      else Winner $ getOpponent player
+
           
         
 
