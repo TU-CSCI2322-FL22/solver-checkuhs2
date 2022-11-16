@@ -3,8 +3,8 @@ module Checkers where
 import Data.List
 import Data.Maybe (isNothing, isJust)
 
-maxTurns :: Int
-maxTurns = 50
+startingTurns :: Int
+startingTurns = 50
 
 data Outcome = Winner Player | Tie
 data Player = Red | Black deriving (Eq,Show)
@@ -65,11 +65,15 @@ getPieceAtLocation (player,bd,_) coord = lookup coord bd
 checkWinner :: GameState -> Maybe Outcome
 checkWinner gs@(player,_,turn) =
   let moves = getValidMoves gs
-  in if turn <= maxTurns then Nothing 
-  else if null moves then Just $ Winner (getOpponent player) else Just Tie
+  in if turn == 0 then Just Tie
+  else if null moves then Just $ Winner (getOpponent player) else Nothing
 
 makeMove :: GameState -> Move -> Maybe GameState
-makeMove gs = foldl makePartialMove (Just gs)
+makeMove gs move = 
+  let thisMoveGS = foldl makePartialMove (Just gs) move
+  in case thisMoveGS of
+      Nothing -> Nothing
+      Just (player,board,turn) -> Just (getOpponent player,board,turn-1)
   where makePartialMove :: Maybe GameState -> (Coordinate,Coordinate) -> Maybe GameState
         makePartialMove game m =
           case game of Nothing -> Nothing
@@ -80,7 +84,7 @@ makeMove gs = foldl makePartialMove (Just gs)
 
 
 makeLegalMove :: GameState -> Move -> GameState
-makeLegalMove gs@(player,board,turn) [] = (getOpponent player,board,turn+1)
+makeLegalMove gs@(player,board,turn) [] = (player,board,turn)
 makeLegalMove gs@(player,board,turn) (m:ms) = makeLegalMove (player, changeBoard board m,turn) ms
   where changeBoard :: Board -> (Coordinate,Coordinate) -> Board
         changeBoard bd (s@(_,sRow), e@(_,eRow))
@@ -220,7 +224,7 @@ testBoard2 =
   --middle row
   makeRow 3 "nrrr" 
 
-testGame2 = (Black,testBoard2)
+testGame2 = (Black,testBoard2,num)
 
 
 {-
