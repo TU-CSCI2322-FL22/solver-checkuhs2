@@ -9,20 +9,15 @@ import Data.Maybe (catMaybes)
 readGame :: String -> Maybe GameState
 readGame str =
     let (firstLine:board) = lines str
-        gameData = getGameStateData $ words firstLine
-    in case gameData of
-        Nothing           -> Nothing
-        Just(turn,player) -> case readMaybeBoard board of
-                                Nothing -> Nothing
-                                Just board -> Just (player,board,turn)
+    in do (turn,player) <- getGameStateData $ words firstLine
+          bd <- readMaybeBoard board
+          return (player,bd,turn)
     where getGameStateData :: [String] -> Maybe (Int,Player)
           getGameStateData fstLine =
             if length fstLine /= 2 then Nothing
-            else case readMaybe (head fstLine) :: Maybe Int of
-                    Nothing -> Nothing
-                    Just i  -> case readMaybePlayer (last fstLine) of
-                                Nothing -> Nothing
-                                Just player -> Just (i,player)
+            else do i <- readMaybe (head fstLine)
+                    player <- readMaybePlayer (last fstLine)
+                    return (i,player)
           readMaybePlayer :: String -> Maybe Player
           readMaybePlayer "Black" = Just Black
           readMaybePlayer "Red" = Just Red
@@ -30,8 +25,10 @@ readGame str =
           readMaybeBoard :: [String] -> Maybe Board
           readMaybeBoard boardStrs =
             let rowStrs = zip rows boardStrs
-                validRows = catMaybes $ map readMaybeRow rowStrs
-            in if length validRows == 8 then Just (concat validRows) else Nothing
+            in do validRows <- sequence $ map readMaybeRow rowStrs
+                  if length validRows == 8 
+                  then Just (concat validRows)
+                  else Nothing
           readMaybeRow :: (Int,String) -> Maybe Board
           readMaybeRow (y,str) =
             let pieces = concat $ words str --remove whitespace
@@ -42,10 +39,9 @@ readGame str =
           readMaybePiece :: (Coordinate,Char) -> Maybe (Coordinate,Piece)
           readMaybePiece (coord,char) = 
             if validCoord coord 
-            then case getPieceFromChar char of
-                    Nothing -> Nothing
-                    Just piece -> Just(coord,piece)
-            else Nothing 
+            then do piece <- getPieceFromChar char
+                    return (coord,piece)
+            else Nothing
           validCoord :: Coordinate -> Bool
           validCoord (x,y) 
             | even y =
@@ -70,5 +66,6 @@ loadGame path =
             Nothing -> error "Couldn't parse gameState from file"
             Just gs -> return gs
 
+--call who will win to IO
 putWinner :: GameState -> IO ()
 putWinner = undefined
