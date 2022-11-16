@@ -70,10 +70,8 @@ checkWinner gs@(player,_,turn) =
 
 makeMove :: GameState -> Move -> Maybe GameState
 makeMove gs move = 
-  let thisMoveGS = foldl makePartialMove (Just gs) move
-  in case thisMoveGS of
-      Nothing -> Nothing
-      Just (player,board,turn) -> Just (getOpponent player,board,turn-1)
+  do (player,board,turn) <- foldl makePartialMove (Just gs) move
+     return (getOpponent player,board,turn-1)
   where makePartialMove :: Maybe GameState -> (Coordinate,Coordinate) -> Maybe GameState
         makePartialMove game m =
           case game of Nothing -> Nothing
