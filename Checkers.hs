@@ -6,7 +6,7 @@ import Data.Maybe (isNothing, isJust)
 startingTurns :: Int
 startingTurns = 50
 
-data Outcome = Winner Player | Tie
+data Outcome = Winner Player | Tie deriving (Eq,Show)
 data Player = Red | Black deriving (Eq,Show)
 data Kind = Emperor | Peasant deriving (Eq,Show)
 
@@ -65,6 +65,7 @@ getPieceAtLocation (player,bd,_) coord = lookup coord bd
 checkWinner :: GameState -> Maybe Outcome
 checkWinner gs@(player,_,turn) =
   let moves = getValidMoves gs
+
   in if turn == 0 then Just Tie
   else if null moves then Just $ Winner (getOpponent player) else Nothing
 
@@ -82,6 +83,7 @@ makeMove gs move =
 
 
 makeLegalMove :: GameState -> Move -> GameState
+
 makeLegalMove gs@(player,board,turn) [] = (player,board,turn)
 makeLegalMove gs@(player,board,turn) (m:ms) = makeLegalMove (player, changeBoard board m,turn) ms
   where changeBoard :: Board -> (Coordinate,Coordinate) -> Board
@@ -211,6 +213,9 @@ testBoard1 =
 num :: Turn
 num = 1
 
+fiveTurnsLeft :: Turn
+fiveTurnsLeft = 49
+
 testGame1B = (Black,testBoard1,num)
 testGame1R = (Red,testBoard1,num)
 
@@ -223,6 +228,14 @@ testBoard2 =
   makeRow 3 "nrrr" 
 
 testGame2 = (Black,testBoard2,num)
+
+
+testBoard3 = 
+  makeRow 7 "nnnB" ++
+  makeRow 5 "nnnR" 
+
+testGame3 = (Red,testBoard3,fiveTurnsLeft)
+
 
 
 {-
