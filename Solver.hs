@@ -60,4 +60,14 @@ predictedWinner2 gs@(player,board,turn) =
 --Failing that, return a move that can force a tie for the current player. 
 --This will involve recursively searching through the game states that result from that move. 
 bestMove :: GameState -> Move
-bestMove = undefined
+bestMove gs@(player,board,turn) =
+    let moves = getValidMoves gs
+        lst = [(predictedWinner2 (makeLegalMove gs m),m) | m <- moves]
+        wins = [move | (w,move) <- lst, w == Winner player]
+        ties = [move | (w,move) <- lst, w == Tie]
+    in  
+        if null wins
+        then    if null ties
+                then head moves
+                else traceShow (ties) last ties
+        else traceShow (wins) last wins
