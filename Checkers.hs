@@ -3,7 +3,7 @@ module Checkers where
 import Data.List
 import Data.Maybe (isNothing, isJust)
 
-startingTurns :: Int
+startingTurns :: Turn
 startingTurns = 50
 
 data Outcome = Winner Player | Tie deriving (Eq,Show)
@@ -204,7 +204,7 @@ defaultBoard =
   makeRow 1 "rrrr"
 
 defaultGame :: GameState
-defaultGame = (Black,defaultBoard,0)
+defaultGame = (Black,defaultBoard,startingTurns)
 
 testBoard1 =
   makeRow 5 "nnbn" ++
@@ -214,17 +214,15 @@ num :: Turn
 num = 1
 
 fiveTurnsLeft :: Turn
-fiveTurnsLeft = 49
+fiveTurnsLeft = 5
 
-testGame1B = (Black,testBoard1,num)
-testGame1R = (Red,testBoard1,num)
+testGame1B = (Black,testBoard1,startingTurns)
+testGame1R = (Red,testBoard1,startingTurns)
 
 testBoard2 =
   makeRow 8 "nnnb" ++
   makeRow 7 "nnnr" ++
   makeRow 5 "nnrr" ++
-  --middle row
-  --middle row
   makeRow 3 "nrrr" 
 
 testGame2 = (Black,testBoard2,num)
