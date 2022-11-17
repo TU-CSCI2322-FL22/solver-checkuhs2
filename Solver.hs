@@ -2,6 +2,7 @@ module Solver where
 
 import Checkers
 import Debug.Trace
+import Data.Maybe (catMaybes)
 
 --Function "who will win" that takes a Game and returns an Outcome. 
 --Considers every valid move, the resulting game state, 
@@ -41,7 +42,7 @@ predictedWinner2 :: GameState -> Outcome
 predictedWinner2 gs@(player,board,turn) =
   case checkWinner gs of
     Nothing ->
-      let possibleMoves = [makeLegalMove gs move | move <- (getValidMoves gs)]
+      let possibleMoves = catMaybes $ [makeMove gs move | move <- (getValidMoves gs)]
           outcomes = map predictedWinner2 possibleMoves
       in if Winner player `elem` outcomes
         then Winner player
@@ -51,6 +52,7 @@ predictedWinner2 gs@(player,board,turn) =
     Just (Winner p) -> 
       if p == player then Winner player
       else Winner $ getOpponent player
+    Just Tie -> Tie
 
           
         
@@ -69,5 +71,5 @@ bestMove gs@(player,board,turn) =
         if null wins
         then    if null ties
                 then head moves
-                else traceShow (ties) last ties
-        else traceShow (wins) last wins
+                else last ties
+        else last wins
