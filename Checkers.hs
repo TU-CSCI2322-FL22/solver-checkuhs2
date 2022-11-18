@@ -26,7 +26,7 @@ prettyShow gs@(player,board,turn) = intercalate "\n" $ firstLines ++ [showRow y 
         showRow num = (show num) ++ " | " ++ (intercalate " | " (map (coordinateToString gs) (zip [1..8] (repeat num)))) ++ " |\n  ---------------------------------"
 
 coordinateToString :: GameState -> Coordinate -> String
-coordinateToString gs coor =
+coordinateToString gs coor = 
   case getPieceAtLocation gs coor of
     Just (Red,Emperor) -> "R"
     Just (Red,Peasant) -> "r"
@@ -69,7 +69,7 @@ checkWinner gs@(player,_,turn) =
   else if null moves then Just $ Winner (getOpponent player) else Nothing
 
 makeMove :: GameState -> Move -> Maybe GameState
-makeMove gs move =
+makeMove gs move = 
   case foldl makePartialMove (Just gs) move of
     Nothing -> Nothing
     Just validGame -> 
@@ -197,7 +197,7 @@ makeRow y pieces
   | otherwise =
     concatMap makePiece (zip pieces [1,3,5,7])
     where makePiece :: (Char,Int) -> [(Coordinate,Piece)]
-          makePiece (char,x) =
+          makePiece (char,x) = 
             case getPieceFromChar char of
               Nothing -> []
               Just piece -> [((x,y),piece)]
@@ -218,16 +218,19 @@ defaultGame = (Black,defaultBoard,startingTurns)
 
 testBoard1 =
   makeRow 5 "nnbn" ++
-  makeRow 4 "nrnn"
+  makeRow 4 "nrnn" 
 
 num :: Turn
-num = 1
+num = 10
+
+oneTurn :: Turn
+oneTurn = 2
 
 fiveTurnsLeft :: Turn
 fiveTurnsLeft = 5
 
-testGame1B = (Black,testBoard1,startingTurns)
-testGame1R = (Red,testBoard1,startingTurns)
+testGame1B = (Black,testBoard1,oneTurn)
+testGame1R = (Red,testBoard1,oneTurn)
 
 testBoard2 =
   makeRow 8 "nnnb" ++
@@ -240,17 +243,23 @@ testGame2 = (Black,testBoard2,num)
 
 testBoard3 =
   makeRow 7 "nnnB" ++
-  makeRow 5 "nnnR"
+  makeRow 5 "nnnR" 
 
 testGame3 = (Red,testBoard3,fiveTurnsLeft)
 
-testBoard4 =
+testBoard4 = 
   makeRow 8 "rbrb" ++
   makeRow 7 "bbbb" ++
   makeRow 2 "rrrr" ++
   makeRow 1 "brbr"
 
 testGame4 = (Red,testBoard4,fiveTurnsLeft)
+
+testBoard5 =
+  makeRow 7 "BBBB" ++
+  makeRow 5 "nnnR" 
+
+testGame5 = (Red,testBoard5,num)
 
 
 {-

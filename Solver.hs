@@ -67,9 +67,8 @@ bestMove gs@(player,board,turn) =
         lst = [(predictedWinner2 (makeLegalMove gs m),m) | m <- moves]
         wins = [move | (w,move) <- lst, w == Winner player]
         ties = [move | (w,move) <- lst, w == Tie]
-    in  
-        if traceShow (wins) null wins
-        then    if traceShow (ties) null ties
+    in  if null wins
+        then    if null ties
                 then head moves
                 else head ties
         else head wins
