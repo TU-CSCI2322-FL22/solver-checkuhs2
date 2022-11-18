@@ -226,8 +226,8 @@ num = 1
 fiveTurnsLeft :: Turn
 fiveTurnsLeft = 5
 
-testGame1B = (Black,testBoard1,startingTurns)
-testGame1R = (Red,testBoard1,startingTurns)
+testGame1B = (Black,testBoard1,num)
+testGame1R = (Red,testBoard1,num)
 
 testBoard2 =
   makeRow 8 "nnnb" ++
