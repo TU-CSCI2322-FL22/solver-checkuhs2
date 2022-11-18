@@ -3,7 +3,7 @@ module Checkers where
 import Data.List
 import Data.Maybe (isNothing, isJust)
 
-startingTurns :: Int
+startingTurns :: Turn
 startingTurns = 50
 
 data Outcome = Winner Player | Tie deriving (Eq,Show)
@@ -26,7 +26,7 @@ prettyShow gs@(player,board,turn) = intercalate "\n" $ firstLines ++ [showRow y 
         showRow num = (show num) ++ " | " ++ (intercalate " | " (map (coordinateToString gs) (zip [1..8] (repeat num)))) ++ " |\n  ---------------------------------"
 
 coordinateToString :: GameState -> Coordinate -> String
-coordinateToString gs coor = 
+coordinateToString gs coor =
   case getPieceAtLocation gs coor of
     Just (Red,Emperor) -> "R"
     Just (Red,Peasant) -> "r"
@@ -65,14 +65,16 @@ getPieceAtLocation (player,bd,_) coord = lookup coord bd
 checkWinner :: GameState -> Maybe Outcome
 checkWinner gs@(player,_,turn) =
   let moves = getValidMoves gs
-
-  in if turn == 0 then Just Tie
+  in if turn < 0 then Just Tie
   else if null moves then Just $ Winner (getOpponent player) else Nothing
 
 makeMove :: GameState -> Move -> Maybe GameState
-makeMove gs move = 
-  do (player,board,turn) <- foldl makePartialMove (Just gs) move
-     return (getOpponent player,board,turn-1)
+makeMove gs move =
+  case foldl makePartialMove (Just gs) move of
+    Nothing -> Nothing
+    Just validGame -> 
+      let (player,board,turn) = promotePieces validGame
+      in Just (getOpponent player,board,turn-1)
   where makePartialMove :: Maybe GameState -> (Coordinate,Coordinate) -> Maybe GameState
         makePartialMove game m =
           case game of Nothing -> Nothing
@@ -80,10 +82,18 @@ makeMove gs move =
                                  then Just (makeLegalMove g [m])
                                  else Nothing
 
-
+promotePieces :: GameState -> GameState
+promotePieces (player,board,turn) = (player, map promotePiece board, turn)
+  where promoteCoords :: Player -> [Coordinate]
+        promoteCoords Red = zip [2,4,6,8] $ repeat 8
+        promoteCoords Black = zip [1,3,5,7] $ repeat 1
+        promotePiece :: (Coordinate,Piece) -> (Coordinate,Piece)
+        promotePiece piece@(coord,(player,kind)) =
+          if kind == Peasant && coord `elem` promoteCoords player
+          then (coord,(player,Emperor))
+          else piece
 
 makeLegalMove :: GameState -> Move -> GameState
-
 makeLegalMove gs@(player,board,turn) [] = (player,board,turn)
 makeLegalMove gs@(player,board,turn) (m:ms) = makeLegalMove (player, changeBoard board m,turn) ms
   where changeBoard :: Board -> (Coordinate,Coordinate) -> Board
@@ -187,7 +197,7 @@ makeRow y pieces
   | otherwise =
     concatMap makePiece (zip pieces [1,3,5,7])
     where makePiece :: (Char,Int) -> [(Coordinate,Piece)]
-          makePiece (char,x) = 
+          makePiece (char,x) =
             case getPieceFromChar char of
               Nothing -> []
               Just piece -> [((x,y),piece)]
@@ -204,17 +214,17 @@ defaultBoard =
   makeRow 1 "rrrr"
 
 defaultGame :: GameState
-defaultGame = (Black,defaultBoard,0)
+defaultGame = (Black,defaultBoard,startingTurns)
 
 testBoard1 =
   makeRow 5 "nnbn" ++
-  makeRow 4 "nrnn" 
+  makeRow 4 "nrnn"
 
 num :: Turn
 num = 1
 
 fiveTurnsLeft :: Turn
-fiveTurnsLeft = 49
+fiveTurnsLeft = 5
 
 testGame1B = (Black,testBoard1,num)
 testGame1R = (Red,testBoard1,num)
@@ -223,19 +233,24 @@ testBoard2 =
   makeRow 8 "nnnb" ++
   makeRow 7 "nnnr" ++
   makeRow 5 "nnrr" ++
-  --middle row
-  --middle row
   makeRow 3 "nrrr" 
 
 testGame2 = (Black,testBoard2,num)
 
 
-testBoard3 = 
+testBoard3 =
   makeRow 7 "nnnB" ++
-  makeRow 5 "nnnR" 
+  makeRow 5 "nnnR"
 
 testGame3 = (Red,testBoard3,fiveTurnsLeft)
 
+testBoard4 =
+  makeRow 8 "rbrb" ++
+  makeRow 7 "bbbb" ++
+  makeRow 2 "rrrr" ++
+  makeRow 1 "brbr"
+
+testGame4 = (Red,testBoard4,fiveTurnsLeft)
 
 
 {-

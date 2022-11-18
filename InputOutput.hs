@@ -2,6 +2,7 @@ module InputOutput where
 
 import System.IO
 import Checkers
+import Solver
 import Data.Map (mapMaybe)
 import Text.Read (readMaybe)
 import Data.Maybe (catMaybes)
@@ -26,7 +27,7 @@ readGame str =
           readMaybeBoard boardStrs =
             let rowStrs = zip rows boardStrs
             in do validRows <- sequence $ map readMaybeRow rowStrs
-                  if length validRows == 8 
+                  if length validRows == 8
                   then Just (concat validRows)
                   else Nothing
           readMaybeRow :: (Int,String) -> Maybe Board
@@ -37,20 +38,20 @@ readGame str =
                 maybePieces = map readMaybePiece coordPieceStringPairs
             in if length pieces == 8 then sequence maybePieces else Nothing
           readMaybePiece :: (Coordinate,Char) -> Maybe (Coordinate,Piece)
-          readMaybePiece (coord,char) = 
-            if validCoord coord 
+          readMaybePiece (coord,char) =
+            if validCoord coord
             then do piece <- getPieceFromChar char
                     return (coord,piece)
             else Nothing
           validCoord :: Coordinate -> Bool
-          validCoord (x,y) 
+          validCoord (x,y)
             | even y =
                 x `elem` [2,4,6,8]
             | otherwise =
                 x `elem` [1,3,5,7]
           rows :: [Int]
           rows = [8,7..1]
-            
+
 showGame :: GameState -> String
 showGame gs = unlines $ uglyShow gs
 
@@ -68,4 +69,4 @@ loadGame path =
 
 --call who will win to IO
 putWinner :: GameState -> IO ()
-putWinner = undefined
+putWinner gs = print (predictedWinner2 gs)

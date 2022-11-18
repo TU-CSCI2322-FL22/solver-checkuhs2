@@ -2,6 +2,7 @@ module Solver where
 
 import Checkers
 import Debug.Trace
+import Data.Maybe (catMaybes)
 
 --Function "who will win" that takes a Game and returns an Outcome. 
 --Considers every valid move, the resulting game state, 
@@ -41,7 +42,7 @@ predictedWinner2 :: GameState -> Outcome
 predictedWinner2 gs@(player,board,turn) =
   case checkWinner gs of
     Nothing ->
-      let possibleMoves = [makeLegalMove gs move | move <- (getValidMoves gs)]
+      let possibleMoves = catMaybes $ [makeMove gs move | move <- (getValidMoves gs)]
           outcomes = map predictedWinner2 possibleMoves
       in if Winner player `elem` outcomes
         then Winner player
@@ -51,6 +52,7 @@ predictedWinner2 gs@(player,board,turn) =
     Just (Winner p) -> 
       if p == player then Winner player
       else Winner $ getOpponent player
+    Just Tie -> Tie
 
           
         
@@ -60,4 +62,14 @@ predictedWinner2 gs@(player,board,turn) =
 --Failing that, return a move that can force a tie for the current player. 
 --This will involve recursively searching through the game states that result from that move. 
 bestMove :: GameState -> Move
-bestMove = undefined
+bestMove gs@(player,board,turn) =
+    let moves = getValidMoves gs
+        lst = [(predictedWinner2 (makeLegalMove gs m),m) | m <- moves]
+        wins = [move | (w,move) <- lst, w == Winner player]
+        ties = [move | (w,move) <- lst, w == Tie]
+    in  
+        if traceShow (wins) null wins
+        then    if traceShow (ties) null ties
+                then head moves
+                else head ties
+        else head wins
