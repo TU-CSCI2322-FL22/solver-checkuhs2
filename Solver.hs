@@ -56,8 +56,6 @@ predictedWinner2 gs@(player,board,turn) =
     Just Tie -> Tie
 
           
-        
-
 --Function "best move" that takes a Game and return the best Move.
 --Given a game state, search for a move that can force a win for the current player. 
 --Failing that, return a move that can force a tie for the current player. 
@@ -68,8 +66,7 @@ bestMove gs@(player,board,turn) =
         lst = [(predictedWinner2 (makeLegalMove gs m),m) | m <- moves]
         wins = [move | (w,move) <- lst, w == Winner player]
         ties = [move | (w,move) <- lst, w == Tie]
-    in  
-        if null wins
+    in  if null wins
         then    if  null ties
                 then head moves
                 else head ties
