@@ -68,8 +68,8 @@ bestMove gs@(player,board,turn) =
         wins = [move | (w,move) <- lst, w == Winner player]
         ties = [move | (w,move) <- lst, w == Tie]
     in  
-        if null wins
-        then    if null ties
+        if traceShow (wins) null wins
+        then    if traceShow (ties) null ties
                 then head moves
-                else last ties
-        else last wins
+                else head ties
+        else head wins
