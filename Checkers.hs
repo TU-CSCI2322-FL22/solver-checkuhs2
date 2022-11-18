@@ -1,8 +1,12 @@
+module Checkers where
 
 import Data.List
 import Data.Maybe (isNothing, isJust)
 
+startingTurns :: Turn
+startingTurns = 50
 
+data Outcome = Winner Player | Tie deriving (Eq,Show)
 data Player = Red | Black deriving (Eq,Show)
 data Kind = Emperor | Peasant deriving (Eq,Show)
 
@@ -10,41 +14,30 @@ type Piece = (Player,Kind)
 type Board = [(Coordinate,Piece)]
 type Coordinate = (Int,Int)
 type Move = [(Coordinate,Coordinate)]
-type GameState = (Player,Board)
+type Turn = Int
+type GameState = (Player,Board,Turn)
 
-
-{-
---writeShow is a helper function for prettyShow that will turn a row of pieces into a string
-writeRow :: Integer -> [Maybe Piece] -> String
-writeRow num ((Just piece):xs) =
-  let symbol = case piece of
-                 (Red,Peasant) -> "r"
-                 (Red,Emperor) -> "R"
-                 (Black,Peasant) -> "b"
-                 (Black,Emperor) -> "B"
-  in if num `mod` 2 == 0
-    then "   | " ++ symbol ++ " |" ++ (writeRow num xs)
-  else
-    " " ++ symbol ++ " |   |" ++ (writeRow num xs)
-
-writeRow num ((Nothing):xs) = "   |   |" ++ (writeRow num xs)
-writeRow num [] = []
-
---prettyShow takes a game state and returns a human readable string representing the Gamestate
---NOTE - when testing in ghci, new lines characters will not appear unless you pass the string from prettyShow into putStrLn
---For example, if you want to test the default board in ghci, you should write: putStrLn $ prettyShow defaultBoard
 prettyShow :: GameState -> String
-prettyShow (player,board) = intercalate "\n" $ reverse $ ["\n", (show player) ++ "'s Turn", "\n", "  ---------------------------------"] ++ (aux 1 (reverse board)) ++ ["\n"]
-  where size = length board
-        aux num (row:rowTail) = [(show num) ++ " |" ++ (writeRow num row), "  ---------------------------------"] ++ aux (num + 1) rowTail
-        aux num [] = ["    1   2   3   4   5   6   7   8 "]
--}
-prettyShow :: GameState -> String
-prettyShow = undefined
+prettyShow gs@(player,board,turn) = intercalate "\n" $ firstLines ++ [showRow y | y <- [8,7..1]]
+  where firstLines = ["", "Turn: " ++ playerString player, "Turn Number: " ++ (show turn),"","    1   2   3   4   5   6   7   8","  ---------------------------------"]
+        playerString Black = "Black"
+        playerString Red = "Red"
+        showRow :: Int -> String
+        showRow num = (show num) ++ " | " ++ (intercalate " | " (map (coordinateToString gs) (zip [1..8] (repeat num)))) ++ " |\n  ---------------------------------"
+
+coordinateToString :: GameState -> Coordinate -> String
+coordinateToString gs coor =
+  case getPieceAtLocation gs coor of
+    Just (Red,Emperor) -> "R"
+    Just (Red,Peasant) -> "r"
+    Just (Black,Emperor) -> "B"
+    Just (Black,Peasant) -> "b"
+    Nothing -> " "
+
 
 uglyShow :: GameState -> [String]
-uglyShow gs@(player,board) =
-  let fstLine = playerToString player
+uglyShow gs@(player,board,turn) =
+  let fstLine = show turn ++ " " ++ playerToString player
   in fstLine:[rowToString y | y <- [8,7..1]]
   where playerToString Black = "Black"
         playerToString Red = "Red"
@@ -59,22 +52,29 @@ uglyShow gs@(player,board) =
             Just(Black,Emperor) -> "B "
             Nothing -> "_ "
 
+printUglyShow :: GameState -> IO ()
 printUglyShow gs = mapM_ putStrLn (uglyShow gs)
 
 getPieceAtLocation :: GameState -> Coordinate -> Maybe Piece
-getPieceAtLocation (player,bd) coord = lookup coord bd
+getPieceAtLocation (player,bd,_) coord = lookup coord bd
 
 
 --checkWinner happens at the start of a "turn"
 --takes the current gamestate and the moves the current player can make
 --this means that if no moves can be made the 'other' player wins 
-checkWinner :: GameState -> Maybe Player
-checkWinner gs@(player,_) =
+checkWinner :: GameState -> Maybe Outcome
+checkWinner gs@(player,_,turn) =
   let moves = getValidMoves gs
-  in if null moves then Just (getOpponent player) else Nothing
+  in if turn < 0 then Just Tie
+  else if null moves then Just $ Winner (getOpponent player) else Nothing
 
 makeMove :: GameState -> Move -> Maybe GameState
-makeMove gs = foldl makePartialMove (Just gs)
+makeMove gs move =
+  case foldl makePartialMove (Just gs) move of
+    Nothing -> Nothing
+    Just validGame -> 
+      let (player,board,turn) = promotePieces validGame
+      in Just (getOpponent player,board,turn-1)
   where makePartialMove :: Maybe GameState -> (Coordinate,Coordinate) -> Maybe GameState
         makePartialMove game m =
           case game of Nothing -> Nothing
@@ -82,11 +82,20 @@ makeMove gs = foldl makePartialMove (Just gs)
                                  then Just (makeLegalMove g [m])
                                  else Nothing
 
-
+promotePieces :: GameState -> GameState
+promotePieces (player,board,turn) = (player, map promotePiece board, turn)
+  where promoteCoords :: Player -> [Coordinate]
+        promoteCoords Red = zip [2,4,6,8] $ repeat 8
+        promoteCoords Black = zip [1,3,5,7] $ repeat 1
+        promotePiece :: (Coordinate,Piece) -> (Coordinate,Piece)
+        promotePiece piece@(coord,(player,kind)) =
+          if kind == Peasant && coord `elem` promoteCoords player
+          then (coord,(player,Emperor))
+          else piece
 
 makeLegalMove :: GameState -> Move -> GameState
-makeLegalMove gs [] = gs
-makeLegalMove gs@(player,board) (m:ms) = makeLegalMove (player, changeBoard board m) ms
+makeLegalMove gs@(player,board,turn) [] = (player,board,turn)
+makeLegalMove gs@(player,board,turn) (m:ms) = makeLegalMove (player, changeBoard board m,turn) ms
   where changeBoard :: Board -> (Coordinate,Coordinate) -> Board
         changeBoard bd (s@(_,sRow), e@(_,eRow))
           | abs (sRow-eRow) == 2 =
@@ -133,7 +142,7 @@ addCoords :: Coordinate -> Coordinate -> Coordinate
 addCoords (x1,y1) (x2,y2) = (x1+x2,y1+y2)
 
 isValidMovement :: GameState -> (Coordinate,Coordinate) -> Bool
-isValidMovement gs@(player,board) (s@(x1,y1), e@(x2,y2)) =
+isValidMovement gs@(player,board,_) (s@(x1,y1), e@(x2,y2)) =
   let dy = abs (y1-y2)
       piece = getPieceAtLocation gs s
   in checkValidPiece piece && checkBounds &&
@@ -156,7 +165,7 @@ isValidMovement gs@(player,board) (s@(x1,y1), e@(x2,y2)) =
                                   Nothing -> False
 
 getValidMoves :: GameState -> [Move]
-getValidMoves gs@(player,board) = concatMap getMovesForCell board
+getValidMoves gs@(player,board,_) = concatMap getMovesForCell board
   where getMovesForCell (coords,(piecePlayer,_)) = if piecePlayer == player
                                                    then getMovesForPiece gs coords
                                                    else []
@@ -174,6 +183,12 @@ getMovesForPiece gs coords@(x,y) = getSingleMoves coords ++ getJumpMoves gs coor
               firstMoves = map (\e -> [(s,e)]) possibleJumpLocations
           in firstMoves ++ [head m : fm | m@((s1,e1):ms) <- firstMoves, f <- followUp, fm@((s2,e2):fms) <- f, s2 == e1]
 
+getPieceFromChar :: Char -> Maybe Piece
+getPieceFromChar 'R' = Just (Red,Emperor)
+getPieceFromChar 'r' = Just (Red,Peasant)
+getPieceFromChar 'B' = Just (Black,Emperor)
+getPieceFromChar 'b' = Just (Black,Peasant)
+getPieceFromChar _ = Nothing
 
 makeRow :: Int -> String -> Board
 makeRow y pieces
@@ -182,11 +197,10 @@ makeRow y pieces
   | otherwise =
     concatMap makePiece (zip pieces [1,3,5,7])
     where makePiece :: (Char,Int) -> [(Coordinate,Piece)]
-          makePiece ('b',x) = [((x,y),(Black,Peasant))]
-          makePiece ('B',x) = [((x,y),(Black,Emperor))]
-          makePiece ('r',x) = [((x,y),(Red,Peasant))]
-          makePiece ('R',x) = [((x,y),(Red,Emperor))]
-          makePiece ('n',x) = []
+          makePiece (char,x) =
+            case getPieceFromChar char of
+              Nothing -> []
+              Just piece -> [((x,y),piece)]
 
 
 defaultBoard =
@@ -199,24 +213,44 @@ defaultBoard =
   makeRow 2 "rrrr" ++
   makeRow 1 "rrrr"
 
-defaultGame = (Black,defaultBoard)
+defaultGame :: GameState
+defaultGame = (Black,defaultBoard,startingTurns)
 
 testBoard1 =
   makeRow 5 "nnbn" ++
-  makeRow 4 "nrnn" 
+  makeRow 4 "nrnn"
 
-testGame1B = (Black,testBoard1)
-testGame1R = (Red,testBoard1)
+num :: Turn
+num = 1
+
+fiveTurnsLeft :: Turn
+fiveTurnsLeft = 5
+
+testGame1B = (Black,testBoard1,num)
+testGame1R = (Red,testBoard1,num)
 
 testBoard2 =
   makeRow 8 "nnnb" ++
   makeRow 7 "nnnr" ++
   makeRow 5 "nnrr" ++
-  --middle row
-  --middle row
   makeRow 3 "nrrr" 
 
-testGame2 = (Black,testBoard2)
+testGame2 = (Black,testBoard2,num)
+
+
+testBoard3 =
+  makeRow 7 "nnnB" ++
+  makeRow 5 "nnnR"
+
+testGame3 = (Red,testBoard3,fiveTurnsLeft)
+
+testBoard4 =
+  makeRow 8 "rbrb" ++
+  makeRow 7 "bbbb" ++
+  makeRow 2 "rrrr" ++
+  makeRow 1 "brbr"
+
+testGame4 = (Red,testBoard4,fiveTurnsLeft)
 
 
 {-
