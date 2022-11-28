@@ -216,43 +216,6 @@ defaultBoard =
 defaultGame :: GameState
 defaultGame = (Black,defaultBoard,startingTurns)
 
-testBoard1 =
-  makeRow 5 "nnbn" ++
-  makeRow 4 "nrnn"
-
-num :: Turn
-num = 1
-
-fiveTurnsLeft :: Turn
-fiveTurnsLeft = 5
-
-testGame1B = (Black,testBoard1,num)
-testGame1R = (Red,testBoard1,num)
-
-testBoard2 =
-  makeRow 8 "nnnb" ++
-  makeRow 7 "nnnr" ++
-  makeRow 5 "nnrr" ++
-  makeRow 3 "nrrr" 
-
-testGame2 = (Black,testBoard2,num)
-
-
-testBoard3 =
-  makeRow 7 "nnnB" ++
-  makeRow 5 "nnnR"
-
-testGame3 = (Red,testBoard3,fiveTurnsLeft)
-
-testBoard4 =
-  makeRow 8 "rbrb" ++
-  makeRow 7 "bbbb" ++
-  makeRow 2 "rrrr" ++
-  makeRow 1 "brbr"
-
-testGame4 = (Red,testBoard4,fiveTurnsLeft)
-
-
 {-
 |||||(2,8)|||||(4,8)|||||(6,8)|||||(8,8)
 (1,7)|||||(3,7)|||||(5,7)|||||(7,7)|||||
