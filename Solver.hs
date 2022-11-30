@@ -71,3 +71,28 @@ bestMove gs@(player,board,turn) =
                 then head moves
                 else head ties
         else head wins
+
+
+--Takes a GameState and returns an integer representing the current player's chance of winning where
+--a positive number is a game in their favor and a negative is in the opponents favor
+rateGameState :: GameState -> Int
+rateGameState gs@(player,board,turn) = 
+  let 
+    calcScores :: Board -> (Int,Int) -> (Int,Int)
+    calcScores [] (redScore,blackScore) = (redScore,blackScore)
+    calcScores ((piece@((x,y),(p,k))):ps) (redScore,blackScore) = 
+      let cornerBonus = if (x == 1 || x == 8 || y == 1 || y == 8) then 1 else 0
+          kindScore = 
+            case k of
+              Peasant -> 1
+              Emperor -> 5
+      in
+        case p of
+          Red -> calcScores ps (redScore + kindScore + cornerBonus, blackScore)
+          Black -> calcScores ps (redScore, blackScore + kindScore + cornerBonus)
+    (redTotal,blackTotal) = calcScores board (0,0)
+  in
+   case player of
+     Red -> redTotal - blackTotal
+     Black -> blackTotal - redTotal
+
