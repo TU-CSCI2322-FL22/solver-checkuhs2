@@ -55,10 +55,25 @@ predictedWinner2 gs@(player,board,turn) =
       else Winner $ getOpponent player
     Just Tie -> Tie
 
-whoMightWin :: Int -> GameState -> Outcome
-whoMightWin depth gs@(player,board,turn) = undefined
 
-          
+--whoMightWin, takes in a maximum depth to search before predicting the winner
+whoMightWin :: Int -> GameState -> Outcome
+whoMightWin depth gs@(player,board,turn) = 
+  if depth == 0 then outcomeFromRating (rateGameState gs)
+  else case checkWinner gs of 
+    Nothing ->  let possibleMoves = catMaybes $ [makeMove gs move | move <- (getValidMoves gs)]
+                    outcomes = map (whoMightWin (depth-1)) possibleMoves
+                in  if Winner player `elem` outcomes
+                    then Winner player
+                    else  if Tie `elem` outcomes
+                          then Tie
+                          else Winner (getOpponent player)
+    Just outcome -> outcome
+  where outcomeFromRating x | x > 0 = Winner player
+                            | x < 0 = Winner (getOpponent player)
+                            | otherwise = Tie
+
+
 --Function "best move" that takes a Game and return the best Move.
 --Given a game state, search for a move that can force a win for the current player. 
 --Failing that, return a move that can force a tie for the current player. 
