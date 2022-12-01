@@ -55,6 +55,9 @@ predictedWinner2 gs@(player,board,turn) =
       else Winner $ getOpponent player
     Just Tie -> Tie
 
+whoMightWin :: Int -> GameState -> Outcome
+whoMightWin depth gs@(player,board,turn) = undefined
+
           
 --Function "best move" that takes a Game and return the best Move.
 --Given a game state, search for a move that can force a win for the current player. 
