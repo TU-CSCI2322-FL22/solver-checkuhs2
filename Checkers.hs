@@ -52,9 +52,6 @@ uglyShow gs@(player,board,turn) =
             Just(Black,Emperor) -> "B "
             Nothing -> "_ "
 
-printUglyShow :: GameState -> IO ()
-printUglyShow gs = mapM_ putStrLn (uglyShow gs)
-
 getPieceAtLocation :: GameState -> Coordinate -> Maybe Piece
 getPieceAtLocation (player,bd,_) coord = lookup coord bd
 

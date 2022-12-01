@@ -55,6 +55,12 @@ readGame str =
 showGame :: GameState -> String
 showGame gs = unlines $ uglyShow gs
 
+printMove :: Move -> IO ()
+printMove move = putStrLn $ show move
+
+printUglyShow :: GameState -> IO ()
+printUglyShow gs = mapM_ putStrLn (uglyShow gs)
+
 writeGame :: GameState -> FilePath -> IO ()
 writeGame gs@(player,board,turn) path =
   let string = showGame gs

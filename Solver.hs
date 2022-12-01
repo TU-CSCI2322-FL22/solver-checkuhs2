@@ -60,10 +60,10 @@ predictedWinner2 gs@(player,board,turn) =
 --Given a game state, search for a move that can force a win for the current player. 
 --Failing that, return a move that can force a tie for the current player. 
 --This will involve recursively searching through the game states that result from that move. 
-bestMove :: GameState -> Move
-bestMove gs@(player,board,turn) =
+bestMove :: GameState -> (GameState -> Outcome) -> Move
+bestMove gs@(player,board,turn) func =
     let moves = getValidMoves gs
-        lst = [(predictedWinner2 (makeLegalMove gs m),m) | m <- moves]
+        lst = [(func (makeLegalMove gs m),m) | m <- moves]
         wins = [move | (w,move) <- lst, w == Winner player]
         ties = [move | (w,move) <- lst, w == Tie]
     in  if null wins
