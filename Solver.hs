@@ -57,21 +57,27 @@ predictedWinner2 gs@(player,board,turn) =
 
 
 --whoMightWin, takes in a maximum depth to search before predicting the winner
-whoMightWin :: Int -> GameState -> Outcome
+whoMightWin :: Int -> GameState -> Int
 whoMightWin depth gs@(player,board,turn) = 
-  if depth == 0 then outcomeFromRating (rateGameState gs)
+  if depth == 0 then rateGameState gs
   else case checkWinner gs of 
     Nothing ->  let possibleMoves = catMaybes $ [makeMove gs move | move <- (getValidMoves gs)]
-                    outcomes = map (whoMightWin (depth-1)) possibleMoves
-                in  if Winner player `elem` outcomes
-                    then Winner player
-                    else  if Tie `elem` outcomes
-                          then Tie
-                          else Winner (getOpponent player)
-    Just outcome -> outcome
-  where outcomeFromRating x | x > 0 = Winner player
-                            | x < 0 = Winner (getOpponent player)
-                            | otherwise = Tie
+                    outcomes = map outcomeFromRating (map (whoMightWin (depth-1)) possibleMoves)
+                in  ratingFromOutcome $   if Winner player `elem` outcomes
+                                          then Winner player
+                                          else  if Tie `elem` outcomes
+                                                then Tie
+                                                else Winner (getOpponent player)
+    Just outcome -> ratingFromOutcome outcome
+    where ratingFromOutcome out = case out of 
+                                    Winner x -> case x of 
+                                                  player -> 1001
+                                                  _ -> -1001
+                                    Tie -> rateGameState gs
+          outcomeFromRating :: Int -> Outcome
+          outcomeFromRating x | x > 0 = Winner player
+                              | x < 0 = Winner (getOpponent player)
+                              | otherwise = Tie
 
 
 --Function "best move" that takes a Game and return the best Move.
