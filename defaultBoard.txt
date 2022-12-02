@@ -1,0 +1,9 @@
+50 Black
+_ b _ b _ b _ b 
+b _ b _ b _ b _ 
+_ b _ b _ b _ b 
+_ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ 
+r _ r _ r _ r _ 
+_ r _ r _ r _ r 
+r _ r _ r _ r _ 
