@@ -41,3 +41,8 @@ testBoard4 =
   makeRow 1 "BrBr"
 
 testGame4 = (Red,testBoard4,fiveLeft)
+
+testBoard5 = 
+  makeRow 7 "nnnb"
+
+testGame5 = (Red,testBoard5,fiveLeft)
