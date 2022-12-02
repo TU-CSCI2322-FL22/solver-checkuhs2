@@ -39,23 +39,25 @@ getMove [] = Nothing
 main = do
     args <- getArgs
     let (flags,inputs,error) = getOpt Permute options args
-    let fname = if null inputs then "defaultBoard.txt" else head inputs
-    gs <- loadGame fname
     if Help `elem` flags || not (null error)
     then putStrLn $ usageInfo "Usage: [options] [file]" options
-    else chooseAction flags gs
+    else do let fname = if null inputs then "defaultBoard.txt" else head inputs
+            gs <- loadGame fname
+            chooseAction flags gs
+    
 
 
 chooseAction :: [Flag] -> GameState -> IO ()
 chooseAction flags gs
- | let move = getMove flags, isJust move = if length flags /= 1
-                                           then error "move flag mutually exclusive with every other flag"
-                                           else case move of
-                                               Nothing -> error "how did we get here? hmmmmm"
-                                               Just move -> printUglyShow (makeLegalMove gs move)
+ | isJust move = case move of
+                    Nothing -> error "how did we get here? hmmmmm"
+                    Just move -> do printUglyShow (makeLegalMove gs move)
+                                    if Verbose `elem` flags then verboseOutput gs move
+                                    else return ()
  | FWinner `elem` flags = if fst (getDepth flags) then error "flags winner and depth are mutually exclusive"
                           else printOutput gs (-1) (Verbose `elem` flags)
  | otherwise = printOutput gs (snd (getDepth flags)) (Verbose `elem` flags)
+    where move = getMove flags
 
 printOutput :: GameState -> Int -> Bool -> IO ()
 printOutput gs depth isVerbose = 
@@ -69,12 +71,12 @@ printOutput gs depth isVerbose =
 verboseOutput :: GameState -> Move -> IO ()
 verboseOutput gs@(player,board,turn) move = 
     let movedState = makeLegalMove gs move
-        score = -1 * (rateGameState movedState) --multiplied by -1 because we want the score for the person who made the previous move
-        string = ": " ++ if score >= 1000 then "Win" else
-                         if score <= -1000 then "Lose" else 
-                         if turn == 0 then "Tie" 
-                         else "Rating of " ++ show score
-    in print string
+        score = rateGameState movedState 
+        string = "This move " ++ if score >= 1000 then "is a Winning Move" else
+                         if score <= -1000 then "is a losing Move" else 
+                         if turn == 0 then "will lead to a tie" 
+                         else "has a rating of " ++ show score
+    in putStrLn string
 
 --parseMove takes a string and returns a Just Move if the string is a properly formatted Move,
 --otherwise, it returns Nothing
