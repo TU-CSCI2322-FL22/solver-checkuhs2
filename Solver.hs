@@ -63,7 +63,8 @@ whoMightWin depth gs@(player,board,turn) =
   if depth == 0 then rateGameState gs
   else case checkWinner gs of 
     Nothing ->  let possibleMoves = catMaybes $ [makeMove gs move | move <- (getValidMoves gs)]
-                    outcomes = map outcomeFromRating (map (whoMightWin (depth-1)) possibleMoves)
+                    results = map (whoMightWin (depth-1)) possibleMoves
+                    outcomes = map outcomeFromRating results
                 in  ratingFromOutcome $   if Winner player `elem` outcomes
                                           then Winner player
                                           else  if Tie `elem` outcomes
