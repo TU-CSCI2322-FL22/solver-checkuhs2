@@ -80,22 +80,24 @@ predictedWinner2 gs@(player,board,turn) =
 --                               | x < -1001 = Winner (getOpponent player)
 --                               | otherwise = Tie
 
-whoMightWin :: Player -> Int -> GameState -> Int
-whoMightWin player depth gs@(gsplayer,board,turn) = 
-  let outcome = checkWinner gs 
-  in  if depth == 0 && isNothing outcome then rateGameState (setPlayer gs)
-      else case outcome of 
-        Nothing ->  let possibleMoves = catMaybes $ [makeMove gs move | move <- getValidMoves gs]
-                        results = map (whoMightWin player (depth-1)) possibleMoves
-                    in  maximum results
-        Just outcome -> ratingFromOutcome outcome
-        where ratingFromOutcome out = case out of 
-                                        Winner x -> case x of 
-                                                      player -> 1000 + rateGameState (setPlayer gs)
-                                                      _ -> -1000 + rateGameState (setPlayer gs)
-                                        Tie -> rateGameState (setPlayer gs)
-              setPlayer :: GameState -> GameState
-              setPlayer gs@(_,board2,turn2) = (player,board2,turn2)
+whoMightWin :: Int -> GameState -> Int
+whoMightWin d state@(p,_,_) = whoMayWin d state
+  where whoMayWin :: Int -> GameState -> Int
+        whoMayWin depth gs = 
+          let outcome = checkWinner gs 
+          in  if depth == 0 && isNothing outcome then rateGameState (setPlayer gs)
+              else case outcome of 
+                Nothing ->  let possibleMoves = catMaybes $ [makeMove gs move | move <- getValidMoves gs]
+                                results = map (whoMayWin (depth-1)) possibleMoves
+                            in  maximum results
+                Just outcome -> ratingFromOutcome outcome
+                where ratingFromOutcome out = case out of 
+                                                Winner x -> case x of 
+                                                              p -> 1000 + rateGameState (setPlayer gs)
+                                                              _ -> -1000 + rateGameState (setPlayer gs)
+                                                Tie -> rateGameState (setPlayer gs)
+                      setPlayer :: GameState -> GameState
+                      setPlayer gs@(_,board2,turn2) = (p,board2,turn2)
 
 
 --Function "best move" that takes a Game and return the best Move.
