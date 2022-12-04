@@ -92,9 +92,7 @@ whoMightWin d state@(p,_,_) = whoMayWin d state
                             in  maximum results
                 Just outcome -> ratingFromOutcome outcome
                 where ratingFromOutcome out = case out of 
-                                                Winner x -> case x of 
-                                                              p -> 1000 + rateGameState (setPlayer gs)
-                                                              _ -> -1000 + rateGameState (setPlayer gs)
+                                                Winner x -> if x == p then 1000 + rateGameState (setPlayer gs) else -1000 + rateGameState (setPlayer gs)
                                                 Tie -> rateGameState (setPlayer gs)
                       setPlayer :: GameState -> GameState
                       setPlayer gs@(_,board2,turn2) = (p,board2,turn2)
