@@ -104,10 +104,10 @@ whoMightWin d state@(p,_,_) = whoMayWin d state
 --Given a game state, search for a move that can force a win for the current player. 
 --Failing that, return a move that can force a tie for the current player. 
 --This will involve recursively searching through the game states that result from that move. 
-bestMove :: GameState -> (GameState -> Outcome) -> Move
-bestMove gs@(player,board,turn) func =
+bestMove :: GameState -> Move
+bestMove gs@(player,board,turn) =
     let moves = getValidMoves gs
-        lst = [(func (makeLegalMove gs m),m) | m <- moves]
+        lst = [(predictedWinner2 (makeLegalMove gs m),m) | m <- moves]
         wins = [move | (w,move) <- lst, w == Winner player]
         ties = [move | (w,move) <- lst, w == Tie]
     in  if null wins
@@ -116,6 +116,11 @@ bestMove gs@(player,board,turn) func =
                 else head ties
         else head wins
 
+depthBestMove :: Int -> GameState -> Move
+depthBestMove depth gs@(player,board,turn) =
+    let moves = getValidMoves gs
+        lst = [(whoMightWin depth (makeLegalMove gs m),m) | m <- moves]
+    in  snd (maximum lst)
 
 --Takes a GameState and returns an integer representing the current player's chance of winning where
 --a positive number is a game in their favor and a negative is in the opponents favor
