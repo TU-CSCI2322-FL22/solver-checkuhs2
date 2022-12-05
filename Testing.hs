@@ -45,6 +45,8 @@ testGame4 = (Red,testBoard4,fiveLeft)
 testGame4B = (Black,testBoard4,fiveLeft)
 
 testBoard5 = 
-  makeRow 7 "nnnb"
+  makeRow 7 "nnnB" ++
+  makeRow 5 "nnRR"
 
-testGame5 = (Red,testBoard5,fiveLeft)
+testGame5 = (Black,testBoard5,fiveLeft)
+testGame5R = (Red,testBoard5,fiveLeft)
