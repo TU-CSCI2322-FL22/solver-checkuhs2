@@ -51,9 +51,11 @@ chooseAction :: [Flag] -> GameState -> IO ()
 chooseAction flags gs
  | isJust move = case move of
                     Nothing -> error "how did we get here? hmmmmm"
-                    Just move -> do printUglyShow (makeLegalMove gs move)
-                                    if Verbose `elem` flags then verboseOutput gs move
-                                    else return ()
+                    Just move -> do case makeMove gs move of 
+                                      Nothing -> error "Invalid Move"
+                                      Just validGs -> do printUglyShow validGs 
+                                                         if Verbose `elem` flags then verboseOutput gs move
+                                                         else return ()
  | FWinner `elem` flags = if fst (getDepth flags) then error "flags winner and depth are mutually exclusive"
                           else printOutput gs (-1) (Verbose `elem` flags)
  | otherwise = printOutput gs (snd (getDepth flags)) (Verbose `elem` flags)
@@ -71,7 +73,8 @@ printOutput gs depth isVerbose =
 verboseOutput :: GameState -> Move -> IO ()
 verboseOutput gs@(player,board,turn) move = 
     let movedState = makeLegalMove gs move
-        score = rateGameState movedState 
+        prevScore = rateGameState gs
+        score = rateGameState movedState - prevScore
         string = "This move " ++ if score >= 1000 then "is a Winning Move" else
                          if score <= -1000 then "is a losing Move" else 
                          if turn == 0 then "will lead to a tie" 
