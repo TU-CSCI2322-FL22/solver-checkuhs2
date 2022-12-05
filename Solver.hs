@@ -136,9 +136,21 @@ rateGameState gs@(player,board,turn) =
         case p of
           Red -> calcScores ps (redScore + kindScore + cornerBonus, blackScore)
           Black -> calcScores ps (redScore, blackScore + kindScore + cornerBonus)
-    (redTotal,blackTotal) = calcScores board (0,0)
+    (filledCoordinates,currentPieces) = unzip board
+    opponent = getOpponent player
   in
-   case player of
-     Red -> redTotal - blackTotal
-     Black -> blackTotal - redTotal
+    if ((opponent,Peasant) `elem` currentPieces) || ((opponent,Emperor) `elem` currentPieces)
+      then 
+        case checkWinner gs of 
+          Just (Winner p) -> -1001
+          Just Tie -> 0
+          Nothing -> 
+            let
+              (redTotal,blackTotal) = calcScores board (0,0)
+             in 
+               case player of
+               Red -> redTotal - blackTotal
+               Black -> blackTotal - redTotal
+    else 1001
+      
 

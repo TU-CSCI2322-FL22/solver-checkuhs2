@@ -43,3 +43,8 @@ testBoard4 =
 
 testGame4 = (Red,testBoard4,fiveLeft)
 testGame4B = (Black,testBoard4,fiveLeft)
+
+testBoard5 = 
+  makeRow 7 "nnnb"
+
+testGame5 = (Red,testBoard5,fiveLeft)
