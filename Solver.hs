@@ -2,7 +2,7 @@ module Solver where
 
 import Checkers
 import Debug.Trace
-import Data.Maybe (catMaybes, isNothing)
+import Data.Maybe (catMaybes, isNothing, isJust)
 
 --This is the previouis implementation of whoWillWin that may or may not be any more efficient
 --Function "who will win" that takes a Game and returns an Outcome. 
@@ -79,23 +79,6 @@ whoMightWin depth gs@(player,board,turn) =
                               | x < -1001 = Winner (getOpponent player)
                               | otherwise = Tie
 
--- whoMightWin :: Int -> GameState -> Int
--- whoMightWin d state@(p,_,_) = whoMayWin d state
---   where whoMayWin :: Int -> GameState -> Int
---         whoMayWin depth gs = 
---           let outcome = checkWinner gs 
---           in  if depth == 0 && isNothing outcome then rateGameState (setPlayer gs)
---               else case outcome of 
---                 Nothing ->  let possibleMoves = catMaybes $ [makeMove gs move | move <- getValidMoves gs]
---                                 results = map (whoMayWin (depth-1)) possibleMoves
---                             in  maximum results
---                 Just outcome -> ratingFromOutcome outcome
---                 where ratingFromOutcome out = case out of 
---                                                 Winner x -> if x == p then 1000 + rateGameState (setPlayer gs) else -1000 + rateGameState (setPlayer gs)
---                                                 Tie -> rateGameState (setPlayer gs)
---                       setPlayer :: GameState -> GameState
---                       setPlayer gs@(_,board2,turn2) = (p,board2,turn2)
-
 
 --Function "best move" that takes a Game and return the best Move.
 --Given a game state, search for a move that can force a win for the current player. 
@@ -104,7 +87,7 @@ whoMightWin depth gs@(player,board,turn) =
 bestMove :: GameState -> Move
 bestMove gs@(player,board,turn) =
     let moves = getValidMoves gs
-        lst = [(predictedWinner2 (makeLegalMove gs m),m) | m <- moves]
+        lst = [(predictedWinner2 move,m) | m <- moves, let move = head $ catMaybes $ [makeMove gs m]]
         wins = [move | (w,move) <- lst, w == Winner player]
         ties = [move | (w,move) <- lst, w == Tie]
     in  if null wins
@@ -113,10 +96,12 @@ bestMove gs@(player,board,turn) =
                 else head ties
         else head wins
 
+
+
 depthBestMove :: Int -> GameState -> Move
 depthBestMove depth gs@(player,board,turn) =
     let moves = getValidMoves gs
-        lst = [(whoMightWin depth (makeLegalMove gs m),m) | m <- moves]
+        lst = [(whoMightWin depth move,m) | m <- moves, let move = head $ catMaybes $ [makeMove gs m]]
     in  snd (maximum lst)
 
 --Takes a GameState and returns an integer representing the current player's chance of winning where
