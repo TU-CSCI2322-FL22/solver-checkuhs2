@@ -62,7 +62,7 @@ getPieceAtLocation (player,bd,_) coord = lookup coord bd
 checkWinner :: GameState -> Maybe Outcome
 checkWinner gs@(player,_,turn) =
   let moves = getValidMoves gs
-  in if turn < 0 then Just Tie
+  in if turn <= 0 then Just Tie
   else if null moves then Just $ Winner (getOpponent player) else Nothing
 
 makeMove :: GameState -> Move -> Maybe GameState
