@@ -1,6 +1,6 @@
 # Commands:
 
-name := foo
+name := checkuhs2
 
 .PHONY: build init test clean doc deploy stage
 

@@ -52,9 +52,6 @@ uglyShow gs@(player,board,turn) =
             Just(Black,Emperor) -> "B "
             Nothing -> "_ "
 
-printUglyShow :: GameState -> IO ()
-printUglyShow gs = mapM_ putStrLn (uglyShow gs)
-
 getPieceAtLocation :: GameState -> Coordinate -> Maybe Piece
 getPieceAtLocation (player,bd,_) coord = lookup coord bd
 
@@ -65,7 +62,7 @@ getPieceAtLocation (player,bd,_) coord = lookup coord bd
 checkWinner :: GameState -> Maybe Outcome
 checkWinner gs@(player,_,turn) =
   let moves = getValidMoves gs
-  in if turn < 0 then Just Tie
+  in if turn <= 0 then Just Tie
   else if null moves then Just $ Winner (getOpponent player) else Nothing
 
 makeMove :: GameState -> Move -> Maybe GameState
