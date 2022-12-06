@@ -123,26 +123,32 @@ whoMightWin gs@(player,board,turn) = case checkWinner gs of
                                             Winner x -> if x == player then 1000 + rateGameState gs else -1000 + rateGameState gs
                                             Tie -> 0
 
-depthBestMove :: Int -> GameState -> Move
-depthBestMove depth gs@(player,board,turn) = case checkWinner gs of 
-  Nothing ->  let possibleMoves = catMaybes $ [pullMaybe (move,makeMove gs move) | move <- getValidMoves gs]
-                  results = map (\(x,y) -> scoreMove x depth y) possibleMoves
-                  (score,move) = maximum results
-              in move
-  _ -> error "The game is over!"
-  where pullMaybe :: (a, Maybe b) -> Maybe (a,b)
-        pullMaybe (a,b) = case b of
-                        Just b -> Just (a,b)
-                        Nothing -> Nothing 
 
-scoreMove :: Move -> Int -> GameState -> (Int, Move)
-scoreMove move 0 gs = (whoMightWin gs, move)
-scoreMove move depth gs = case checkWinner gs of
-                            Nothing -> let moves = getValidMoves gs
-                                           newStates = catMaybes $ map (makeMove gs) moves
-                                           scoreLst = map (scoreMove move (depth-1)) newStates
-                                        in maximum scoreLst
-                            winner -> (whoMightWin gs, move)
+goodMove :: Int -> GameState -> Move
+goodMove d state@(p,b,t) = depthBestMove d state
+  where depthBestMove :: Int -> GameState -> Move
+        depthBestMove depth gs@(player,board,turn) = case checkWinner gs of 
+          Nothing ->  let possibleMoves = catMaybes $ [pullMaybe (move,makeMove gs move) | move <- getValidMoves gs]
+                          results = map (\(x,y) -> scoreMove x depth y) possibleMoves
+                          (score,move) = maximum results
+                      in move
+          _ -> error "The game is over!"
+          where pullMaybe :: (a, Maybe b) -> Maybe (a,b)
+                pullMaybe (a,b) = case b of
+                                Just b -> Just (a,b)
+                                Nothing -> Nothing 
+        scoreMove :: Move -> Int -> GameState -> (Int, Move)
+        scoreMove move 0 gs = (whoMightWin $ setPlayer gs, move)
+        scoreMove move depth gs = case checkWinner gs of
+                                    Nothing -> let  moves = getValidMoves gs
+                                                    newStates = catMaybes $ map (makeMove gs) moves
+                                                    scoreLst = map (scoreMove move (depth-1)) newStates
+                                                in maximum scoreLst
+                                    winner -> (whoMightWin $ setPlayer gs, move)
+        setPlayer game@(_,x,y) = (p,x,y)
+        
+
+    
 
 --Function "best move" that takes a Game and return the best Move.
 --Given a game state, search for a move that can force a win for the current player. 
