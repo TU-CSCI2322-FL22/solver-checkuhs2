@@ -9,10 +9,12 @@ import Data.Maybe (catMaybes)
 
 readGame :: String -> Maybe GameState
 readGame str =
-    let (firstLine:board) = lines str
-    in do (turn,player) <- getGameStateData $ words firstLine
-          bd <- readMaybeBoard board
-          return (player,bd,turn)
+    case str of 
+      [] -> Nothing
+      str -> let (firstLine:board) = lines str
+             in do (turn,player) <- getGameStateData $ words firstLine
+                   bd <- readMaybeBoard board
+                   return (player,bd,turn)
     where getGameStateData :: [String] -> Maybe (Int,Player)
           getGameStateData fstLine =
             if length fstLine /= 2 then Nothing
