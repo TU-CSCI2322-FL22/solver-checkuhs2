@@ -63,7 +63,7 @@ chooseAction flags gs
 
 printOutput :: GameState -> Int -> Bool -> IO ()
 printOutput gs depth isVerbose = 
-    let move = depthBestMove depth gs
+    let move = goodMove depth gs
     in do print move
           if isVerbose then verboseOutput gs move
           else return ()
